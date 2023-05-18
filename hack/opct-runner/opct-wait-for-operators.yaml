@@ -1,0 +1,13 @@
+---
+- name: OPCT | Waiting for Cluster Operators
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    loop_count: 2
+    loop_interval_sec: 5
+
+  tasks:
+  - name: OPCT | CO Check | Starting the wait loop
+    ansible.builtin.include_tasks: opct-wait-for-operators-tasks.yaml
+    with_sequence: start=1 end="{{ loop_count }}"
+

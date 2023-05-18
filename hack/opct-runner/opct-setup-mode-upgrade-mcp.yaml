@@ -1,0 +1,27 @@
+---
+- name: OPCT | Setup | MachineConfigPool
+  hosts: localhost
+  tasks:
+  - name: OPCT | Setup | Creating Paused MCP
+    environment:
+      KUBECONFIG: "{{ kubeconfig }}"
+    register: create_mcp
+    until: "create_mcp is not failed"
+    retries: 5
+    delay: 5
+    kubernetes.core.k8s:
+      state: present
+      api_version: machineconfiguration.openshift.io/v1
+      kind: MachineConfigPool
+      name: opct
+      definition:
+        spec:
+          machineConfigSelector:
+            matchExpressions:
+            - key: machineconfiguration.openshift.io/role,
+              operator: In,
+              values: [worker,opct]
+          nodeSelector:
+            matchLabels:
+              "node-role.kubernetes.io/tests": ''
+          paused: true

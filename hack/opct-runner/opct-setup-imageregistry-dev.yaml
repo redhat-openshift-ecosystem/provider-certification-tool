@@ -1,0 +1,21 @@
+---
+- name: OPCT | Setup | Local Image Registry
+  hosts: localhost
+  tasks:
+  - name: OPCT | Setup | Create Manage Image Registry with emptyDir storage
+    environment:
+      KUBECONFIG: "{{ kubeconfig }}"
+    register: create_registry
+    until: "create_registry is not failed"
+    retries: 5
+    delay: 5
+    kubernetes.core.k8s:
+      state: present
+      api_version: imageregistry.operator.openshift.io/v1
+      kind: Config
+      name: cluster
+      definition:
+        spec:
+          managementState: Managed
+          storage:
+            emptyDir: {}

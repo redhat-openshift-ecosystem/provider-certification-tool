@@ -34,8 +34,6 @@ type StatusOptions struct {
 	waitInterval        time.Duration
 }
 
-// StatusInput is the interface to input options when
-// creating status object.
 type StatusInput struct {
 	Watch           bool
 	IntervalSeconds int

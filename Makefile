@@ -9,6 +9,7 @@ IMG ?= quay.io/ocp-cert/opct
 VERSION=$(shell git rev-parse --short HEAD)
 RELEASE_TAG ?= 0.0.0
 BIN_NAME ?= opct
+BIN_EXT ?= ''
 
 GO_BUILD_FLAGS := -ldflags '-s -w -X github.com/redhat-openshift-ecosystem/provider-certification-tool/pkg/version.commit=$(VERSION) -X github.com/redhat-openshift-ecosystem/provider-certification-tool/pkg/version.version=$(RELEASE_TAG)'
 GOOS ?= linux
@@ -26,8 +27,8 @@ build-dep:
 
 .PHONY: build
 build: build-dep
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH) $(GO_BUILD_FLAGS)
-	@cd $(BUILD_DIR); md5sum $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH) > $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH).sum; cd -
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH)$(BIN_EXT) $(GO_BUILD_FLAGS)
+	@cd $(BUILD_DIR); md5sum $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH)$(BIN_EXT) > $(BUILD_DIR)/opct-$(GOOS)-$(GOARCH)$(BIN_EXT).sum; cd -
 
 .PHONY: build-linux-amd64
 build-linux-amd64: GOOS = linux
@@ -35,9 +36,13 @@ build-linux-amd64: GOARCH = amd64
 build-linux-amd64: build
 
 .PHONY: build-windows-amd64
-build-windows-amd64: build-dep
-	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/opct-windows.exe $(GO_BUILD_FLAGS)
-	@cd $(BUILD_DIR); md5sum $(BUILD_DIR)/opct-windows-amd64 > $(BUILD_DIR)/opct-windows-amd64.sum; cd -
+build-windows-amd64: GOOS = windows
+build-windows-amd64: GOARCH = amd64
+build-windows-amd64: BIN_EXT = .exe
+build-windows-amd64: build
+#build-windows-amd64: build-dep
+#	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/opct-windows.exe $(GO_BUILD_FLAGS)
+#	@cd $(BUILD_DIR); md5sum $(BUILD_DIR)/opct-windows-amd64 > $(BUILD_DIR)/opct-windows-amd64.sum; cd -
 
 .PHONY: build-darwin-amd64
 build-darwin-amd64: GOOS = darwin

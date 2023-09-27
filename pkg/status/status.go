@@ -21,6 +21,7 @@ import (
 
 const (
 	DefaultStatusIntervalSeconds = 10
+	StatusInterval               = time.Second * 10
 	StatusRetryLimit             = 10
 )
 
@@ -48,10 +49,6 @@ func NewStatusOptions(in *StatusInput) *StatusOptions {
 		s.waitInterval = time.Duration(in.IntervalSeconds) * time.Second
 	}
 	return s
-}
-
-func (s *StatusOptions) GetIntervalSeconds() time.Duration {
-	return s.waitInterval
 }
 
 func NewCmdStatus() *cobra.Command {
@@ -175,7 +172,7 @@ func (s *StatusOptions) WaitForStatusReport(ctx context.Context, sclient sonobuo
 		}
 
 		tries++
-		log.Warnf("waiting %ds to retry", int(s.waitInterval.Seconds()))
+		log.Warnf("waiting %ds to retry", int(StatusInterval.Seconds()))
 		return false, nil
 	})
 	return err

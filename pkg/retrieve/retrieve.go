@@ -48,7 +48,7 @@ func NewCmdRetrieve() *cobra.Command {
 				return
 			}
 
-			s := status.NewStatusOptions(&status.StatusInput{Watch: false})
+			s := status.NewStatusOptions(false)
 			err = s.PreRunCheck(kclient)
 			if err != nil {
 				log.Error(err)

@@ -39,7 +39,7 @@ func TestParseMetaLogs(t *testing.T) {
 		{
 			name: "parse server start",
 			args: args{
-				logs: []string{`{"level":"info","msg":"Starting server Expected Results: ...","time":"2023-09-28T00:00:00Z"}`},
+				logs: []string{`{"msg":"Starting server Expected Results: ...","time":"2023-09-28T00:00:00Z"}`},
 			},
 			want: []*RuntimeInfoItem{
 				{

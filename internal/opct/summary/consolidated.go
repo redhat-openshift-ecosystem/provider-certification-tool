@@ -570,7 +570,6 @@ func (cs *ConsolidatedSummary) buildDocumentationForPlugin(pluginName string) er
 			return nil
 		}
 		version = matches[1]
-		// fmt.Println(matches)
 		docUserBaseURL = fmt.Sprintf("https://github.com/cncf/k8s-conformance/blob/master/docs/KubeConformance-%s.md", version)
 		docSourceBaseURL = fmt.Sprintf("https://raw.githubusercontent.com/cncf/k8s-conformance/master/docs/KubeConformance-%s.md", version)
 	case plugin.PluginNameOpenShiftConformance:

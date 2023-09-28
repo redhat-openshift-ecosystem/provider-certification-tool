@@ -26,6 +26,7 @@ func loadTestDataMetaConfig() {
 func TestParseMetaConfig(t *testing.T) {
 
 	loadTestDataMetaConfig()
+
 	type args struct {
 		cfg *MetaConfigSonobuoy
 	}

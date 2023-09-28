@@ -21,9 +21,9 @@ func NewErrorCounter(buf *string, pattern []string) ErrorCounter {
 		total += cnt
 	}
 
+	// check failures for each pattern
 	for _, errName := range append(pattern, `error`) {
 		reErr := regexp.MustCompile(errName)
-		// Check occurrences in Failure
 		if matches := reErr.FindAllStringIndex(*buf, -1); len(matches) != 0 {
 			incError(errName, len(matches))
 		}
@@ -36,10 +36,16 @@ func NewErrorCounter(buf *string, pattern []string) ErrorCounter {
 	return counters
 }
 
+// MergeErrorCounters is a method to merge two counter maps, resulting
+// in a single containging all keys from both maps, and values accumulated
+// by key.
 func MergeErrorCounters(ec1, ec2 *ErrorCounter) *ErrorCounter {
 	new := make(ErrorCounter, len(ci.CommonErrorPatterns))
 	if ec1 == nil {
-		return &new
+		if ec2 == nil {
+			return &new
+		}
+		return ec2
 	}
 	if ec2 == nil {
 		return ec1

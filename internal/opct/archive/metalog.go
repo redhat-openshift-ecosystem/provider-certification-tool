@@ -117,11 +117,6 @@ func ParseMetaLogs(logs []string) []*RuntimeInfoItem {
 			}
 			mapExists[msg] = exists
 		}
-
-		// More events:
-		// Shutting down aggregation server
-		// server collector started: Running cluster queries
-		// server collector finished
 	}
 
 	return runtimeLogs

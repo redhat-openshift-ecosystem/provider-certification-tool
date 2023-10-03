@@ -5,11 +5,13 @@ import (
 	"compress/gzip"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/archive"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/plugin"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/openshift/mustgather"
+	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/openshift/mustgathermetrics"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 
@@ -42,6 +44,11 @@ type ResultSummary struct {
 
 	// MustGather stores the extracted items from must-gather.
 	MustGather *mustgather.MustGather
+
+	HasCAMGI   bool
+	HasMetrics bool
+
+	Metrics *mustgathermetrics.MustGatherMetrics
 }
 
 // HasValidResults checks if the result instance has valid archive to be processed,
@@ -281,12 +288,17 @@ func (rs *ResultSummary) populateSummary() error {
 		pathMetaRun                 = "meta/run.log"
 		pathMetaConfig              = "meta/config.json"
 		pathResourceNSOpctConfigMap = "resources/ns/openshift-provider-certification/core_v1_configmaps.json"
+		pathCAMIG                   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather_camgi.html"
+		pathMetrics                 = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather-metrics.tar.xz"
 	)
 
-	var mustGather bytes.Buffer
-	saveMustGather := rs.SavePath != ""
+	mustGather := bytes.Buffer{}
+	saveToFlagEnabled := rs.SavePath != ""
 	testsSuiteK8S := bytes.Buffer{}
 	testsSuiteOCP := bytes.Buffer{}
+
+	CAMGI := bytes.Buffer{}
+	MetricsData := bytes.Buffer{}
 
 	metaRunLogs := bytes.Buffer{}
 	metaConfig := archive.MetaConfigSonobuoy{}
@@ -347,9 +359,17 @@ func (rs *ResultSummary) populateSummary() error {
 		if err := results.ExtractFileIntoStruct(pathResourceNSOpctConfigMap, path, info, &opctConfigMapList); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
 		}
-		if saveMustGather {
+		if saveToFlagEnabled {
 			if warn := results.ExtractBytes(pathMustGather, path, info, &mustGather); warn != nil {
 				log.Warnf("Unable to load file %s: %v\n", pathMustGather, warn)
+				return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
+			}
+			if warn := results.ExtractBytes(pathCAMIG, path, info, &CAMGI); warn != nil {
+				log.Warnf("Unable to load file %s: %v\n", pathCAMIG, warn)
+				return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
+			}
+			if warn := results.ExtractBytes(pathMetrics, path, info, &MetricsData); warn != nil {
+				log.Warnf("Unable to load file %s: %v\n", pathCAMIG, warn)
 				return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
 			}
 		}
@@ -387,7 +407,7 @@ func (rs *ResultSummary) populateSummary() error {
 	rs.GetSonobuoy().ParseMetaConfig(&metaConfig)
 	rs.GetSonobuoy().ParseOpctConfigMap(&opctConfigMapList)
 
-	if saveMustGather {
+	if saveToFlagEnabled {
 		log.Debugf("Processing results/Populating/Populating Summary/Processing/MustGather")
 		rs.MustGather = mustgather.NewMustGather(fmt.Sprintf("%s/must-gather", rs.SavePath))
 		if err := rs.MustGather.Process(&mustGather); err != nil {
@@ -397,6 +417,31 @@ func (rs *ResultSummary) populateSummary() error {
 			// Non blocking
 			rs.MustGather.AggregateCounters()
 		}
+		if len(CAMGI.Bytes()) > 0 {
+			err = os.WriteFile(fmt.Sprintf("%s/%s", rs.SavePath, filepath.Base(pathCAMIG)), CAMGI.Bytes(), 0644)
+			if err != nil {
+				log.Errorf("Processing results/Populating/Populating Summary/Processing/CAMGI: %v", err)
+			} else {
+				rs.HasCAMGI = true
+			}
+		} else {
+			log.Error("Processing results/Populating/Populating Summary/Processing/CAMGI: Not Found")
+		}
+		if len(MetricsData.Bytes()) > 0 {
+			rs.Metrics, err = mustgathermetrics.NewMustGatherMetrics(rs.SavePath, pathMetrics, &MetricsData)
+			if err != nil {
+				log.Errorf("Processing results/Populating/Populating Summary/Processing/MetricsData: %v", err)
+			} else {
+				err := rs.Metrics.Process()
+				if err != nil {
+					log.Errorf("Processing MetricsData: %v", err)
+				}
+				rs.HasMetrics = true
+			}
+		} else {
+			log.Error("Processing results/Populating/Populating Summary/Processing/MetricsData: Not Found")
+		}
+
 	}
 	return nil
 }

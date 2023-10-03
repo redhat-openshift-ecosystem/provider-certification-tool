@@ -2,17 +2,27 @@ package metrics
 
 import "time"
 
+type Timer struct {
+	start time.Time
+
+	// Total is a calculation of elapsed time from start timestamp.
+	Total float64 `json:"seconds"`
+}
+
+// Timers is a struct used internally to handle execution markers,
+// used to check the total execeution time for some parsers.
 type Timers struct {
 	Timers map[string]*Timer `json:"Timers,omitempty"`
 	last   string
 }
 
-func NewTimers() Timers {
+func NewTimers() *Timers {
 	ts := Timers{Timers: make(map[string]*Timer)}
-	return ts
+	return &ts
 }
 
-// set a timer, updating if existing.
+// set is a method to persist a timer, updating if exists.
+// The current timestamp will be used when a new item is created.
 func (ts *Timers) set(k string) {
 	if _, ok := ts.Timers[k]; !ok {
 		ts.Timers[k] = &Timer{start: time.Now()}
@@ -22,7 +32,8 @@ func (ts *Timers) set(k string) {
 	}
 }
 
-// Set check last timer, stop and add a new one (lap).
+// Set method is an external interface to create/update a timer.
+// Interface for start, stop and add a new one (lap).
 func (ts *Timers) Set(k string) {
 	if ts.last != "" {
 		ts.set(ts.last)
@@ -31,14 +42,7 @@ func (ts *Timers) Set(k string) {
 	ts.last = k
 }
 
-// Add a new timer.
+// Add method creates a new timer metric.
 func (ts *Timers) Add(k string) {
 	ts.set(k)
-}
-
-type Timer struct {
-	start time.Time
-
-	// Total time in milisseconds
-	Total float64 `json:"seconds"`
 }

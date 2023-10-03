@@ -141,7 +141,7 @@ func (mg *MustGather) CalculateCountersEtcd() {
 	for _, line := range mg.ErrorEtcdLogsBuffer {
 		filterATTL1.ProcessLine(*line)
 	}
-	mg.ErrorEtcdLogs.FilterRequestSlowHour = filterATTL1.GetStat(4)
+	mg.ErrorEtcdLogs.FilterRequestSlowHour = filterATTL1.GetStat(parserETCDLogsReqTTLMaxPastHour)
 
 	// filter Slow Requests (aggregate all)
 	filterATTL2 := NewFilterApplyTookTooLong("all")

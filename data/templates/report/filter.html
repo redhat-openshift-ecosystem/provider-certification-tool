@@ -15,23 +15,26 @@ preventing conflict with Vue delimiter.
   <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-  <!-- <link href="https://cdn.jsdelivr.net/npm/vuetify@3.3.7/dist/vuetify.min.css" rel="stylesheet" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.3.7/dist/vuetify.min.js"></script> -->
+  <!-- Load required Bootstrap and BootstrapVue CSS -->
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
 
+  <!-- Load polyfills to support older browsers -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
 
-<!-- Load required Bootstrap and BootstrapVue CSS -->
-<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
-<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+  <!-- Load Vue followed by BootstrapVue -->
+  <script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
 
-<!-- Load polyfills to support older browsers -->
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+  <!-- Load the following for BootstrapVueIcons support -->
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
 
-<!-- Load Vue followed by BootstrapVue -->
-<!-- <script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script> -->
-<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+  <!-- Load Vue followed by BootstrapVue -->
+  <!-- <script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script> -->
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
 
-<!-- Load the following for BootstrapVueIcons support -->
-<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+  <!-- Load the following for BootstrapVueIcons support -->
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
 
 <style>
 /* styles: Tab */
@@ -73,13 +76,8 @@ table { font-size: 8pt; }
     <div id="app_opct">
       <div class="row mt-2">
         <!-- OPCT side nav menu -->
-        <div class="col-2" id="nav-col">
-          <div class="list-group">
-            <a href="#" class="list-group-item list-group-item-action">Failures</a>
-          </div>
-        </div>
+
         <!-- OPCT content -->
-        <h3>[[ .Summary.Tests.Archive ]]</h3>
         <div class="col-10">
           <div>
             <b-container fluid>

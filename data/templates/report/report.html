@@ -56,16 +56,19 @@ table { font-size: 8pt; }
 </head>
 <body>
 
-  <!-- Tab manager -->
-  <div class="tab">
-    <button class="tablinks" onclick="openTab(event, 'OPCT')" id="tabDefault">OPCT</button>
-    <button class="tablinks" onclick="openTab(event, 'CAMGI')">CAMGI</button>
-    <button class="tablinks" onclick="openExternalTab(event, '/opct-filter.html')">Tests</button>
-    <button class="tablinks" onclick="openExternalTab(event, '/must-gather/event-filter.html')">Events</button>
-  </div>
+<!-- Tab manager -->
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'OPCT')" id="tabDefault">OPCT</button>
+  <button class="tablinks" onclick="openTab(event, 'CAMGI')">CAMGI</button>
+  <button class="tablinks" onclick="openTab(event, 'OPCT-FILTER')">Tests</button>
+  <button class="tablinks" onclick="openTab(event, 'MG-Events')">Events</button>
+  <!-- <button class="tablinks" onclick="openExternalTab(event, '/must-gather/event-filter.html')">Events</button> -->
+  <!-- <button class="tablinks" onclick="openTab(event, 'Metrics')">Metrics</button> -->
+  <button class="tablinks" onclick="openExternalTab(event, '/metrics.html')">Metrics</button>
+</div>
 
-  <!-- Tab content: OPCT -->
-  <div id="OPCT" class="tabcontent">
+<!-- Tab content: OPCT -->
+<div id="OPCT" class="tabcontent">
     <div id="app_opct">
       <div class="row mt-2">
         <!-- OPCT side nav menu -->
@@ -132,37 +135,57 @@ table { font-size: 8pt; }
         </div>
       </div>
     </div>
-  </div>
+</div>
+
 
 <!-- TAB START CAMGI -->
-  <div id="CAMGI" class="tabcontent">
-    <p><a href="https://github.com/elmiko/camgi.rs">CAMGI</a>, Cluster Autoscaler Must Gather Investigator, is a tool for examining OKD/OpenShift must-gather
-      records to investigate cluster autoscaler behavior and configuration.</p>
-    <p>Steps to use with OPCT:</p>
-    <ul>
-    <li>1) download the tool</li>
-    <li>2) extract must-gather from artifacts</li>
-    </ul>
-    <pre><code class="lang-sh"><span class="hljs-comment">
-# Extract the OPCT result file (artifacts.tar.gz)</span>
-mkdir results &amp;&amp; \
-tar xfz artifacts.tar.gz -C results
-<span class="hljs-comment">
-# Extract the must-gather (requires xz)</span>
-mkdir results<span class="hljs-regexp">/must-gather &amp;&amp; \
-tar xfJ results/</span>plugins<span class="hljs-regexp">/99-openshift-artifacts-collector/</span>results<span class="hljs-regexp">/global/</span>artifacts_must-gather.tar.xz -C results<span class="hljs-regexp">/must-gather</span>
-    </code></pre>
-    <ul><li>3) run camgi</li></ul>
-    <pre><code class="lang-sh">.<span class="hljs-regexp">/camgi results/mu</span>st-gather &gt; results<span class="hljs-regexp">/camgi.html</span>
-    </code></pre>
-    <ul><li>4) Open the file results/camgi.html in your browser.</li></ul>
-    <blockquote><blockquote>
-    <p>TODO: collect the camgd.html in the artifacts plugin.</p>
-    </blockquote></blockquote>
-    </div>
+<div id="CAMGI" class="tabcontent">
+[[ if .Summary.Features.HasCAMGI ]]
+    <iframe src="./artifacts_must-gather_camgi.html" height="800" width="100%" title="Iframe Example"></iframe>
+[[ else ]]
+        <p><a href="https://github.com/elmiko/camgi.rs">CAMGI</a>, Cluster Autoscaler Must Gather Investigator, is a tool for examining OKD/OpenShift must-gather
+          records to investigate cluster autoscaler behavior and configuration.</p>
+        <p>Steps to use with OPCT:</p>
+        <ul>
+        <li>1) download the tool</li>
+        <li>2) extract must-gather from artifacts</li>
+        </ul>
+        <pre><code class="lang-sh"><span class="hljs-comment">
+    # Extract the OPCT result file (artifacts.tar.gz)</span>
+    mkdir results &amp;&amp; \
+    tar xfz artifacts.tar.gz -C results
+    <span class="hljs-comment">
+    # Extract the must-gather (requires xz)</span>
+    mkdir results<span class="hljs-regexp">/must-gather &amp;&amp; \
+    tar xfJ results/</span>plugins<span class="hljs-regexp">/99-openshift-artifacts-collector/</span>results<span class="hljs-regexp">/global/</span>artifacts_must-gather.tar.xz -C results<span class="hljs-regexp">/must-gather</span>
+        </code></pre>
+        <ul><li>3) run camgi</li></ul>
+        <pre><code class="lang-sh">.<span class="hljs-regexp">/camgi results/mu</span>st-gather &gt; results<span class="hljs-regexp">/camgi.html</span>
+        </code></pre>
+        <ul><li>4) Open the file results/camgi.html in your browser.</li></ul>
+        <blockquote><blockquote>
+        <p>TODO: collect the camgd.html in the artifacts plugin.</p>
+        </blockquote></blockquote>
+        </div>
+[[ end ]]
+</div>
 <!-- Tab END CAMGI -->
 
+<div id="OPCTFILTER" class="tabcontent">
+  <iframe src="./opct-filter.html" height="800" width="100%" title="Raw tests"></iframe>
+</div>
+
+<div id="MGEvents" class="tabcontent">
+  <iframe src="./must-gather/event-filter.html" height="800" width="100%" title="Events collected by must-gather"></iframe>
+</div>
+
+<!-- <div id="Metrics" class="tabcontent">
+  <iframe src="./metrics.html" height="800" width="100%" title="Metrics Collected from Prometheus"></iframe>
+</div> -->
+
 <!-- Scripts -->
+
+<!-- Chart JSON -->
 
 <script>
   // TODO: move script to external file.
@@ -213,6 +236,7 @@ tar xfJ results/</span>plugins<span class="hljs-regexp">/99-openshift-artifacts-
         menuBody: '',
         isLoading: true,
         loadingMessage: '',
+        showMetrics: false,
       };
     },
     methods: {

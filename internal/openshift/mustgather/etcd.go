@@ -13,6 +13,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	parserETCDLogsReqTTLMaxPastHour = 6
+)
+
 // ErrorEtcdLogs handle errors extracted/parsed from etcd pod logs.
 type ErrorEtcdLogs struct {
 	ErrorCounters         archive.ErrorCounter
@@ -46,8 +50,8 @@ func NewErrorEtcdLogs(buf *string) *ErrorEtcdLogs {
 			etcdLogs.Buffer = append(etcdLogs.Buffer, errLogLine)
 		}
 	}
-	// Check only the last 3 hours (average time of an opct execution)
-	etcdLogs.FilterRequestSlowHour = filterATTL1.GetStat(3)
+	// Check only the last N hours (average time of an opct execution)
+	etcdLogs.FilterRequestSlowHour = filterATTL1.GetStat(parserETCDLogsReqTTLMaxPastHour)
 
 	// filter Slow Requests (aggregate all)
 	filterATTL2 := NewFilterApplyTookTooLong("all")

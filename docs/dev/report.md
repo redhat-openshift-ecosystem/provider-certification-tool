@@ -44,3 +44,39 @@ sequenceDiagram
 ## Frontend
 
 > TODO: detail about the frontend construct.
+
+
+## Explore the data
+
+### Process many results (batch)
+
+```bash
+export RESULTS=( ocp414rc2_Azure_Azure-IPI_202309291531 ocp414rc2_Azure_Azure-IPI-tmpstg_202309300444 ); for RES in ${RESULTS[*]}; do
+  echo "CREATING $RES";
+  mkdir -pv /tmp/results-shared/$RES ;
+  ~/opct/bin/opct-devel report --server-skip --save-to /tmp/results-shared/$RES $RES;
+done
+```
+
+### Metrics
+
+```bash
+ARTIFACT_NAME=ocp414rc0_AWS_None_202309222127_sonobuoy_47efe9ef-06e4-48f3-a190-4e3523ff1ae0.tar.gz
+# check if metrics has been collected
+tar tf $ARTIFACT_NAME |grep artifacts_must-gather-metrics.tar.xz
+
+# extract the metrics data
+tar xf $ARTIFACT_NAME plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather-metrics.tar.xz
+mkdir metrics
+tar xfJ plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather-metrics.tar.xz -C metrics/
+
+# check if etcd disk fsync metrics has been collected by server
+zcat metrics/monitoring/prometheus/metrics/query_range-etcd-disk-fsync-db-duration-p99.json.gz | jq .data.result[].metric.instance 
+
+# Install the utility asciigraph: 
+
+# plot the metrics
+METRIC=etcd-disk-fsync-db-duration-p99;
+DATA=${PWD}/oci/metrics/monitoring/prometheus/metrics/query_range-${METRIC}.json.gz;
+for INSTANCE in $(zcat $DATA | jq -r .data.result[].metric.instance ); do zcat $DATA | jq -r ".data.result[] | select(.metric.instance==\"$INSTANCE\").values[]|@tsv" | awk '{print$2}' |asciigraph -h 10 -w 100 -c "$METRIC - $INSTANCE" ; done
+```

@@ -19,7 +19,7 @@ import (
 // ConsolidatedSummary Aggregate the results of provider and baseline
 type ConsolidatedSummary struct {
 	Verbose  bool
-	Timers   metrics.Timers
+	Timers   *metrics.Timers
 	Provider *ResultSummary
 	Baseline *ResultSummary
 }

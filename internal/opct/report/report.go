@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"os"
 	"sort"
 	"strings"
 
+	"github.com/go-echarts/go-echarts/v2/opts"
 	vfs "github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/assets"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/archive"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/metrics"
@@ -56,10 +58,16 @@ type ReportSummary struct {
 	Alerts   *ReportSummaryAlerts  `json:"alerts"`
 	Runtime  *ReportSummaryRuntime `json:"runtime,omitempty"`
 	Headline string                `json:"headline"`
+	Features ReportSummaryFeatures `json:"features,omitempty"`
+}
+
+type ReportSummaryFeatures struct {
+	HasCAMGI       bool `json:"hasCAMGI,omitempty"`
+	HasMetricsData bool `json:"hasMetricsData,omitempty"`
 }
 
 type ReportSummaryRuntime struct {
-	Timers        metrics.Timers    `json:"timers,omitempty"`
+	Timers        *metrics.Timers   `json:"timers,omitempty"`
 	Plugins       map[string]string `json:"plugins,omitempty"`
 	ExecutionTime string            `json:"executionTime,omitempty"`
 }
@@ -201,6 +209,12 @@ func (re *Report) Populate(cs *summary.ConsolidatedSummary) error {
 			re.Provider.Version.Kubernetes,
 		)
 	}
+
+	re.Summary.Features = ReportSummaryFeatures{
+		HasCAMGI:       cs.Provider.HasCAMGI,
+		HasMetricsData: cs.Provider.HasMetrics,
+	}
+
 	checks := NewCheckSummary(re)
 	err := checks.Run()
 	if err != nil {
@@ -486,6 +500,8 @@ func (re *Report) SaveResults(path string) error {
 		re.Raw = string(reportData)
 	}
 
+	// createCharts(path)
+
 	err = os.WriteFile(fmt.Sprintf("%s/%s", path, ReportFileNameIndexJSON), reportData, 0644)
 	checkOrPanic(err)
 
@@ -557,3 +573,13 @@ type SortedListTestFailure []SortedTestFailure
 func (p SortedListTestFailure) Len() int           { return len(p) }
 func (p SortedListTestFailure) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p SortedListTestFailure) Less(i, j int) bool { return p[i].Value < p[j].Value }
+
+// generate random data for bar chart
+func generateBarItems() []opts.BarData {
+	items := make([]opts.BarData, 0)
+	for i := 0; i < 7; i++ {
+		items = append(items, opts.BarData{Value: rand.Intn(300)})
+	}
+	return items
+}
+

@@ -124,6 +124,17 @@ EOF
 </body>
 </html>
 EOF
+    cat <<EOF > "${REPORT_PATH}"/redirect.html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>OPCT</title>
+    <meta http-equiv="refresh" content="0; URL='https://opct.apps.devcluster.openshift.com/reports/report-az/index.html'"/>
+</head>
+<body></body>
+</html>
+EOF
 
 }
 

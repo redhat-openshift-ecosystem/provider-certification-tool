@@ -20,7 +20,9 @@ func loadTestDataMetaConfig() {
 	if err != nil {
 		log.Fatalf("unable to load test data %s: %v", file, err)
 	}
-	json.Unmarshal(metaFile, &testDataMetaConfig)
+	if err := json.Unmarshal(metaFile, &testDataMetaConfig); err != nil {
+		log.Fatalf("unable to parse test data %s: %v", file, err)
+	}
 }
 
 func TestParseMetaConfig(t *testing.T) {

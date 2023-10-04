@@ -4,9 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -58,41 +56,37 @@ func (mg *MustGatherMetrics) read(buf *bytes.Buffer) (*tar.Reader, error) {
 // extract dispatch to process must-gather items.
 func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 
-	// Walk through files in must-gather tarball file.
 	keepReading := true
 	metricsPage := chart.NewMetricsPage()
-	// charts := make(map[string]*chart.MustGatherMetric, 0)
+	reportPath := mg.ReportPath + mg.ReportChartFile
+
+	// Walk through files in tarball file.
 	for keepReading {
 		header, err := tarball.Next()
 
 		switch {
+
 		// no more files
 		case err == io.EOF:
-			// log.Debugf("Must-gather processor queued, queue size: %d", procQueueSize)
-			// waiterProcNS.Wait()
-			keepReading = false
-			// log.Debugf("Must-gather processor finished, queue size: %d", procQueueSize)
-			reportPath := mg.ReportPath + mg.ReportChartFile
 			err := chart.SaveMetricsPageReport(metricsPage, reportPath)
 			if err != nil {
 				log.Errorf("error saving metrics to: %s\n", reportPath)
 				return err
 			}
-			log.Infof("metrics saved at: %s\n", reportPath)
+			log.Debugf("metrics saved at: %s\n", reportPath)
 			return nil
 
 		// return on error
 		case err != nil:
 			return errors.Wrapf(err, "error reading tarball")
-			// return err
 
 		// skip it when the headr isn't set (not sure how this happens)
 		case header == nil:
 			continue
 		}
 
-		isMetricData := strings.HasPrefix(header.Name, "monitoring/prometheus/metrics") && strings.HasSuffix(header.Name, ".json.gz")
-		if !isMetricData {
+		// process only metris file. Example: monitoring/prometheus/metrics/metric.json.gz
+		if !(strings.HasPrefix(header.Name, "monitoring/prometheus/metrics") && strings.HasSuffix(header.Name, ".json.gz")) {
 			continue
 		}
 
@@ -100,30 +94,34 @@ func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 
 		chart, ok := chart.ChartsAvailable[metricFileName]
 		if !ok {
-			log.Warnf("Unable to find metric data definition for: %s\n", header.Name)
+			log.Debugf("Metrics/Extractor/Unsupported metric, ignoring metric data %s\n", header.Name)
 			continue
 		}
 		if !chart.CollectorAvailable {
-			log.Warnf("Ignoring processor for metric data: %s\n", header.Name)
+			log.Debugf("Metrics/Extractor/No charts available for metric %s\n", header.Name)
 			continue
 		}
-		fmt.Printf("Processing: %s\n", header.Name)
+		log.Debugf("Metrics/Extractor/Processing: %s\n", header.Name)
 
-		gr, err := gzip.NewReader(tarball)
+		gz, err := gzip.NewReader(tarball)
 		if err != nil {
-			log.Errorf("error unziping the metric: %v", err)
-			return err
+			log.Debugf("Metrics/Extractor/Processing/ERROR reading metric %v", err)
+			continue
 		}
-		defer gr.Close()
-		metricPayload, err := ioutil.ReadAll(gr)
-		if err != nil {
-			log.Errorf("error loading metric data: %v", err)
-			return err
+		defer gz.Close()
+		var metricPayload bytes.Buffer
+		if _, err := io.Copy(&metricPayload, gz); err != nil {
+			log.Debugf("Metrics/Extractor/Processing/ERROR copying metric data for %v", err)
+			continue
 		}
 
-		chart.LoadData(metricPayload)
+		err = chart.LoadData(metricPayload.Bytes())
+		if err != nil {
+			log.Debugf("Metrics/Extractor/Processing/ERROR loading metric for %v", err)
+			continue
+		}
 		metricsPage.AddCharts(chart.NewChart())
-		fmt.Printf("Done: %s\n", header.Name)
+		log.Debugf("Metrics/Extractor/Processing/Done %v", header.Name)
 	}
 
 	return nil

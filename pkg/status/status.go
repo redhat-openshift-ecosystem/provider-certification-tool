@@ -28,6 +28,7 @@ const (
 // StatusOptions is the interface to store input options to
 // interface with Status command.
 type StatusOptions struct {
+	StartTime           time.Time
 	Latest              *aggregation.Status
 	watch               bool
 	shownPostProcessMsg bool
@@ -44,6 +45,7 @@ func NewStatusOptions(in *StatusInput) *StatusOptions {
 	s := &StatusOptions{
 		watch:        in.Watch,
 		waitInterval: time.Second * DefaultStatusIntervalSeconds,
+		StartTime:    time.Now(),
 	}
 	if in.IntervalSeconds != 0 {
 		s.waitInterval = time.Duration(in.IntervalSeconds) * time.Second
@@ -204,18 +206,18 @@ func (s *StatusOptions) Print(cmd *cobra.Command, sclient sonobuoyclient.Interfa
 func (s *StatusOptions) doPrint() (complete bool, err error) {
 	switch s.GetStatus() {
 	case aggregation.RunningStatus:
-		err := PrintRunningStatus(s.Latest)
+		err := PrintRunningStatus(s.Latest, s.StartTime)
 		if err != nil {
 			return false, err
 		}
 	case aggregation.PostProcessingStatus:
 		if !s.watch {
-			err := PrintRunningStatus(s.Latest)
+			err := PrintRunningStatus(s.Latest, s.StartTime)
 			if err != nil {
 				return false, err
 			}
 		} else if !s.shownPostProcessMsg {
-			err := PrintRunningStatus(s.Latest)
+			err := PrintRunningStatus(s.Latest, s.StartTime)
 			if err != nil {
 				return false, err
 			}
@@ -223,7 +225,7 @@ func (s *StatusOptions) doPrint() (complete bool, err error) {
 			s.shownPostProcessMsg = true
 		}
 	case aggregation.CompleteStatus:
-		err := PrintRunningStatus(s.Latest)
+		err := PrintRunningStatus(s.Latest, s.StartTime)
 		if err != nil {
 			return true, err
 		}

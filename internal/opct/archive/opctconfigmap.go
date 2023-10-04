@@ -48,7 +48,6 @@ func ParseOpctConfig(cms *v1.ConfigMapList) []*RuntimeInfoItem {
 	sort.Strings(keys)
 	cmData := make([]*RuntimeInfoItem, 0, len(keys))
 	for _, key := range keys {
-		fmt.Printf("%s\n", key)
 		cmData = append(cmData, cmpMap[key])
 	}
 	return cmData

@@ -134,19 +134,23 @@ func init() {
 	}
 }
 
+// NewMetricsPage create the page object to genera the metric report.
 func NewMetricsPage() *components.Page {
 	page := components.NewPage()
 	page.PageTitle = "OPCT Report Metrics"
 	return page
 }
 
+// SaveMetricsPageReport Create HTML metrics file in a given path.
 func SaveMetricsPageReport(page *components.Page, path string) error {
-	// Create HTML metrics file
+
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	page.Render(io.MultiWriter(f))
+	if err := page.Render(io.MultiWriter(f)); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -159,19 +163,20 @@ func (mmm *MustGatherMetric) NewChart() *charts.Line {
 	})
 }
 
+// LoadData generates the metric widget (plot graph from data series).
 func (mmm *MustGatherMetric) LoadData(payload []byte) error {
 	mmm.MetricData = &PrometheusResponse{}
 
 	err := json.Unmarshal(payload, &mmm.MetricData)
 	if err != nil {
-		log.Errorf("error parsing metric data: %v", err)
+		log.Errorf("Metrics/Extractor/Processing/LoadMetric ERROR parsing metric data: %v", err)
 		return err
 	}
-	fmt.Printf("Metric Loaded with type: %s\n", mmm.MetricData.Status)
-
+	log.Debugf("Metrics/Extractor/Processing/LoadMetric Status: %s\n", mmm.MetricData.Status)
 	return nil
 }
 
+// processMetric generates the metric widget (plot graph from data series).
 func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 
 	line := charts.NewLine()
@@ -197,21 +202,21 @@ func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 			DataPoints: make([]opts.LineData, 0),
 		}
 		for _, datapoints := range res.Values {
-			// instance1Items = append(instance1Items, datapoints[0].(string))
 			value := datapoints[1].(string)
 			if value == "" {
-				fmt.Printf("Empty value [%s], ignoring...", value)
+				log.Debugf("Metrics/Extractor/Processing/GenChart: Empty value [%s], ignoring...", value)
 				continue
 			}
+			// Convert from Unix timestamp to string value
 			tm := time.Unix(int64(datapoints[0].(float64)), 0)
-			strTimestamp := fmt.Sprintf("%d-%d-%d %d:%d:%d", tm.Year(), tm.Month(), tm.Day(),
-				tm.Hour(), tm.Minute(), tm.Second())
+			strTimestamp := fmt.Sprintf("%d-%d-%d %d:%d:%d", tm.Year(), tm.Month(), tm.Day(), tm.Hour(), tm.Minute(), tm.Second())
+
 			allTimestamps = append(allTimestamps, strTimestamp)
-			// fmt.Println(tm.String(), value)
 			chart.DataPoints = append(chart.DataPoints, opts.LineData{Value: value})
 		}
 		chartData = append(chartData, chart)
 	}
+
 	sort.Strings(allTimestamps)
 	line.SetXAxis(allTimestamps).
 		SetSeriesOptions(charts.WithLineChartOpts(

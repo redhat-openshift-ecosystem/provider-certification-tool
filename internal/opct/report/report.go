@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"math/rand"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/go-echarts/go-echarts/v2/opts"
 	vfs "github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/assets"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/archive"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/metrics"
@@ -573,13 +571,3 @@ type SortedListTestFailure []SortedTestFailure
 func (p SortedListTestFailure) Len() int           { return len(p) }
 func (p SortedListTestFailure) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p SortedListTestFailure) Less(i, j int) bool { return p[i].Value < p[j].Value }
-
-// generate random data for bar chart
-func generateBarItems() []opts.BarData {
-	items := make([]opts.BarData, 0)
-	for i := 0; i < 7; i++ {
-		items = append(items, opts.BarData{Value: rand.Intn(300)})
-	}
-	return items
-}
-

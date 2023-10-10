@@ -26,7 +26,7 @@ type ErrorEtcdLogs struct {
 }
 
 // common errors to create counters
-var commonTestErrorPatternEtcdLogs = []string{
+var commonErrorPatternEtcdLogs = []string{
 	`rejected connection`,
 	`waiting for ReadIndex response took too long, retrying`,
 	`failed to find remote peer in cluster`,
@@ -34,13 +34,20 @@ var commonTestErrorPatternEtcdLogs = []string{
 	`request stats`,
 	`apply request took too long`,
 	`failed to lock file`,
+	`leader failed to send out heartbeat on time`,
+	`leader is overloaded likely from slow disk`,
+	`rejected stream from remote peer because it was removed`,
+	`peer became inactive (message send to peer failed)`,
+	`lost TCP streaming connection with remote peer`,
+	`failed to reach the peer URL`,
+	`prober detected unhealthy status`,
 }
 
 func NewErrorEtcdLogs(buf *string) *ErrorEtcdLogs {
 	etcdLogs := &ErrorEtcdLogs{}
 
 	// create counters
-	etcdLogs.ErrorCounters = archive.NewErrorCounter(buf, commonTestErrorPatternEtcdLogs)
+	etcdLogs.ErrorCounters = archive.NewErrorCounter(buf, commonErrorPatternEtcdLogs)
 
 	// filter Slow Requests (aggregate by hour)
 	filterATTL1 := NewFilterApplyTookTooLong("hour")

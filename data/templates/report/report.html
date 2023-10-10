@@ -473,9 +473,9 @@ preventing conflict with Vue/JS language. -->
         // build hyperlinks in the name (when exists)
         dtFailures = []
         for (let check of this.report.checks.failures) {
-          if (check.documentation != this.report.checks.emptyValue && check.patched == undefined) {
+          if (check.documentation != "" && check.patched == undefined) {
             check.patched = true
-            check.name = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
+            check.slo = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
           }
           dtFailures.push(check)
         }
@@ -490,9 +490,9 @@ preventing conflict with Vue/JS language. -->
 
         dtSuccess = []
         for (let check of this.report.checks.successes) {
-          if (check.documentation != this.report.checks.emptyValue && check.patched == undefined) {
+          if (check.documentation != "" && check.patched == undefined) {
             check.patched = true
-            check.name = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
+            check.slo = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
           }
           dtSuccess.push(check)
         }

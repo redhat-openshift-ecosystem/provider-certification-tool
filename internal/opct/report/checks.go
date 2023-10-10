@@ -331,7 +331,7 @@ func NewCheckSummary(re *Report) *CheckSummary {
 				return res
 			}
 			perc := (float64(p.Stat.Failed) / float64(p.Stat.Total)) * 100
-			res.Actual = fmt.Sprintf("Failed==%.3f", perc)
+			res.Actual = fmt.Sprintf("Failed==%.2f%%", perc)
 			if perc > 1.5 {
 				return res
 			}

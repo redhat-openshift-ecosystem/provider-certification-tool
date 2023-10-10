@@ -222,7 +222,7 @@ func showReportAggregatedSummary(re *report.Report) error {
 		fmt.Fprintf(tbWriter, " - Kubernetes\t: %s\t: %s\n", re.Provider.Version.Kubernetes, re.Baseline.Version.Kubernetes)
 		fmt.Fprintf(tbWriter, " - OpenShift\t: %s\t: %s\n", re.Provider.Version.OpenShift.Desired, re.Baseline.Version.OpenShift.Desired)
 		// fmt.Fprintf(tbWriter, " - Cluster Update Progressing\t: %s\t: %s\n", re.Provider.Version.OpenShiftUpdProg, re.Baseline.Version.OpenShiftUpdProg)
-		fmt.Fprintf(tbWriter, " - OpenShift (Previous)\t: %s\t: %s\n", re.Provider.Version.OpenShift.Previous, re.Baseline.Version.OpenShift.Previous)
+		// fmt.Fprintf(tbWriter, " - OpenShift (Previous)\t: %s\t: %s\n", re.Provider.Version.OpenShift.Previous, re.Baseline.Version.OpenShift.Previous)
 		fmt.Fprintf(tbWriter, " - Channel\t: %s\t: %s\n", re.Provider.Version.OpenShift.Channel, re.Baseline.Version.OpenShift.Channel)
 	} else {
 		fmt.Fprintf(tbWriter, " Cluster Version:\n")

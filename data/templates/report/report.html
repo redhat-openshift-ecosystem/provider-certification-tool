@@ -506,9 +506,11 @@ preventing conflict with Vue/JS language. -->
         this.menuBody += this.createTableHTML(table=tSucc);
       },
       getPluginStat(name) {
-        let plugin = this.report.provider.plugins[name]
+        let plugin = this.report.provider.plugins[name];
+        logPath = "log-sonobuoy-"+ plugin.id +"-plugin.txt";
+        pluginNameURL = "<a href=\"./"+ logPath +"\" target=\"_blank\">"+ plugin.id +"</a><br>"
         table = [{
-          "Plugin Name": plugin.id,
+          "Plugin Name": pluginNameURL,
           "Time": this.report.summary.runtime.plugins[name],
           "Result": plugin.stat.result,
           "Status": plugin.stat.status,

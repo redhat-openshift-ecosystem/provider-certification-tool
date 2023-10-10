@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/archive"
@@ -315,6 +317,9 @@ func (rs *ResultSummary) populateSummary() error {
 	pluginDef10 := SonobuoyPluginDefinition{}
 	pluginDef20 := SonobuoyPluginDefinition{}
 
+	pattern := `^podlogs\/.*\/sonobuoy-.*-job-.*\/logs\/plugin.txt`
+	re := regexp.MustCompile(pattern)
+
 	// Iterate over the archive to get the items as an object to build the Summary report.
 	log.Debugf("Processing results/Populating/Populating Summary/Extracting")
 	err := rs.reader.WalkFiles(func(path string, info os.FileInfo, e error) error {
@@ -374,6 +379,26 @@ func (rs *ResultSummary) populateSummary() error {
 				log.Warnf("Unable to load file %s: %v\n", pathCAMIG, warn)
 				return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
 			}
+			if re.MatchString(path) {
+				var raw bytes.Buffer
+				if warn := results.ExtractBytes(path, path, info, &raw); warn != nil {
+					log.Warnf("Unable to load plugin log %s: %v\n", path, warn)
+					return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
+				}
+				prefix := strings.Split(path, "-job-")
+				if len(prefix) != 2 {
+					log.Warnf("Unable to read podLog prefix for path: %s\n", path)
+				}
+				filepath := strings.Split(prefix[0], "/")
+				if len(filepath) <= 0 {
+					log.Warnf("Unable to read podLog file for path: %s\n", path)
+				}
+				dest := fmt.Sprintf("%slog-%s-plugin.txt", rs.SavePath, filepath[len(filepath)-1])
+				err := os.WriteFile(dest, raw.Bytes(), 0644)
+				if err != nil {
+					log.Errorf("Processing results/Populating/Populating Summary/Extracting/podLogs/plugins: %v", err)
+				}
+			}
 		}
 		return e
 	})
@@ -416,7 +441,6 @@ func (rs *ResultSummary) populateSummary() error {
 			log.Errorf("Processing results/Populating/Populating Summary/Processing/MustGather: %v", err)
 		} else {
 			log.Debugf("Processing results/Populating/Populating Summary/Processing/MustGather/CalculatingErrors")
-			// Non blocking
 			rs.MustGather.AggregateCounters()
 		}
 		if len(CAMGI.Bytes()) > 0 {

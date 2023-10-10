@@ -282,14 +282,16 @@ func (rs *ResultSummary) populateSummary() error {
 		pathPluginArtifactTestsOCP   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_e2e-tests_openshift-conformance.txt"
 		pathPluginDefinition10       = "plugins/10-openshift-kube-conformance/definition.json"
 		pathPluginDefinition20       = "plugins/20-openshift-conformance-validated/definition.json"
-		// TODO: the following file is used to keep compatibility with versions older than v0.3
-		pathPluginArtifactTestsOCP2 = "plugins/99-openshift-artifacts-collector/results/global/artifacts_e2e-openshift-conformance.txt"
-		pathMustGather              = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather.tar.xz"
+
 		pathMetaRun                 = "meta/run.log"
 		pathMetaConfig              = "meta/config.json"
 		pathResourceNSOpctConfigMap = "resources/ns/openshift-provider-certification/core_v1_configmaps.json"
 		pathCAMIG                   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather_camgi.html"
 		pathMetrics                 = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather-metrics.tar.xz"
+
+		// TODO: the following file is used to keep compatibility with versions older than v0.3
+		pathPluginArtifactTestsOCP2 = "plugins/99-openshift-artifacts-collector/results/global/artifacts_e2e-openshift-conformance.txt"
+		pathMustGather              = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather.tar.xz"
 	)
 
 	mustGather := bytes.Buffer{}

@@ -566,25 +566,21 @@ func showErrorDetailPlugin(p *report.ReportPlugin, verbose bool, bProcessed bool
 }
 
 func showChecks(re *report.Report) error {
-
+	emptyLine := "\t\t\t\t\n"
 	tbWriter := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
-	fmt.Fprintf(tbWriter, "\n> Presubmit Validation Checks\t\n")
-	fmt.Fprintf(tbWriter, "\n>> Failed checks (must be reviewed before submitting the results):\t\n")
+
+	fmt.Fprintf(tbWriter, "\n> Presubmit Validation Checks\n%s", emptyLine)
+	fmt.Fprintf(tbWriter, "\n%s>> Failed checks (must be reviewed before submitting the results):\t\t\t\t\n", emptyLine)
+	header := fmt.Sprintf("\n%8s \t%-90s \t%-6s \t%-34s \t%s\n", "ID", "NAME", "RESULT", "TARGET", "ACTUAL")
+	fmt.Fprintf(tbWriter, "%s", header)
 	for _, check := range re.Checks.Fail {
-		name := check.Name
-		if check.ID != "" {
-			name = fmt.Sprintf("[%s] %s", check.ID, check.Name)
-		}
-		fmt.Fprintf(tbWriter, " - %s\t: %s\n", name, check.Result)
+		fmt.Fprintf(tbWriter, "%8s \t%-90s \t%-6s \t%-34s \t%s\n", check.ID, check.SLO, check.SLOResult, check.SLITarget, check.SLIActual)
 	}
 
-	fmt.Fprintf(tbWriter, "\t\n>> Passed checks:\t\n")
+	fmt.Fprintf(tbWriter, "\n%s>> Passed checks:%s\n", emptyLine, emptyLine)
+	fmt.Fprintf(tbWriter, "%s", header)
 	for _, check := range re.Checks.Pass {
-		name := check.Name
-		if check.ID != "" {
-			name = fmt.Sprintf("[%s] %s", check.ID, check.Name)
-		}
-		fmt.Fprintf(tbWriter, " - %s\t: %s\n", name, check.Result)
+		fmt.Fprintf(tbWriter, "%8s \t%-90s \t%-6s \t%-34s \t%s\n", check.ID, check.SLO, check.SLOResult, check.SLITarget, check.SLIActual)
 	}
 
 	fmt.Fprintf(tbWriter, "\n> Check the docs for each rule at %s\n", re.Checks.BaseURL)

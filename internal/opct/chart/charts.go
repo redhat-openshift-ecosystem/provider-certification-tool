@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"time"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -163,6 +162,15 @@ func (mmm *MustGatherMetric) NewChart() *charts.Line {
 	})
 }
 
+func (mmm *MustGatherMetric) NewCharts() []*charts.Line {
+	return mmm.processMetrics(&readMetricInput{
+		filename: mmm.Path,
+		label:    mmm.PlotLabel,
+		title:    mmm.PlotTitle,
+		subtitle: mmm.PlotSubTitle,
+	})
+}
+
 // LoadData generates the metric widget (plot graph from data series).
 func (mmm *MustGatherMetric) LoadData(payload []byte) error {
 	mmm.MetricData = &PrometheusResponse{}
@@ -196,6 +204,7 @@ func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 	}
 
 	chartData := []ChartData{}
+	idx := 0
 	for _, res := range mmm.MetricData.Data.Result {
 		chart := ChartData{
 			Label:      res.Metric[in.label],
@@ -212,19 +221,76 @@ func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 			strTimestamp := fmt.Sprintf("%d-%d-%d %d:%d:%d", tm.Year(), tm.Month(), tm.Day(), tm.Hour(), tm.Minute(), tm.Second())
 
 			allTimestamps = append(allTimestamps, strTimestamp)
-			chart.DataPoints = append(chart.DataPoints, opts.LineData{Value: value})
+			chart.DataPoints = append(chart.DataPoints, opts.LineData{
+				Value:      value,
+				XAxisIndex: idx,
+			})
+			idx += 1
 		}
 		chartData = append(chartData, chart)
 	}
 
-	sort.Strings(allTimestamps)
+	// sort.Strings(allTimestamps)
 	line.SetXAxis(allTimestamps).
 		SetSeriesOptions(charts.WithLineChartOpts(
 			opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
 		))
+	// line.SetSeriesOptions(charts.WithLineChartOpts(
+	// 	opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
+	// ))
 	for _, chart := range chartData {
 		line.AddSeries(chart.Label, chart.DataPoints)
 	}
 
 	return line
+}
+
+// processMetric generates the metric widget (plot graph from data series).
+func (mmm *MustGatherMetric) processMetrics(in *readMetricInput) []*charts.Line {
+
+	var lines []*charts.Line
+
+	idx := 0
+	for _, res := range mmm.MetricData.Data.Result {
+		allTimestamps := []string{}
+		line := charts.NewLine()
+		line.SetGlobalOptions(
+			charts.WithTitleOpts(opts.Title{
+				Title:    in.title,
+				Subtitle: in.subtitle,
+			}),
+			charts.WithTooltipOpts(opts.Tooltip{Show: true, Trigger: "axis"}),
+		)
+		dataPoints := make([]opts.LineData, 0)
+		for _, datapoints := range res.Values {
+			value := datapoints[1].(string)
+			if value == "" {
+				log.Debugf("Metrics/Extractor/Processing/GenChart: Empty value [%s], ignoring...", value)
+				continue
+			}
+			// Convert from Unix timestamp to string value
+			tm := time.Unix(int64(datapoints[0].(float64)), 0)
+			strTimestamp := fmt.Sprintf("%d-%d-%d %d:%d:%d", tm.Year(), tm.Month(), tm.Day(), tm.Hour(), tm.Minute(), tm.Second())
+
+			allTimestamps = append(allTimestamps, strTimestamp)
+			dataPoints = append(dataPoints, opts.LineData{
+				Value:      value,
+				XAxisIndex: idx,
+			})
+			idx += 1
+		}
+		line.SetXAxis(allTimestamps).
+			SetSeriesOptions(charts.WithLineChartOpts(
+				opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
+			))
+		line.AddSeries(res.Metric[in.label], dataPoints)
+		lines = append(lines, line)
+	}
+
+	// sort.Strings(allTimestamps)
+
+	// line.SetSeriesOptions(charts.WithLineChartOpts(
+	// 	opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
+	// ))
+	return lines
 }

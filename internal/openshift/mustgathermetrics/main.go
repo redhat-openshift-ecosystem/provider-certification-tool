@@ -120,7 +120,10 @@ func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 			log.Debugf("Metrics/Extractor/Processing/ERROR loading metric for %v", err)
 			continue
 		}
-		metricsPage.AddCharts(chart.NewChart())
+		// metricsPage.AddCharts(chart.NewChart())
+		for _, line := range chart.NewCharts() {
+			metricsPage.AddCharts(line)
+		}
 		log.Debugf("Metrics/Extractor/Processing/Done %v", header.Name)
 	}
 

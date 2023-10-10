@@ -34,9 +34,10 @@ type Report struct {
 }
 
 type ReportChecks struct {
-	BaseURL string   `json:"baseURL"`
-	Fail    []*Check `json:"failures"`
-	Pass    []*Check `json:"successes"`
+	BaseURL    string       `json:"baseURL"`
+	EmptyValue string       `json:"emptyValue"`
+	Fail       []*SLOOutput `json:"failures"`
+	Pass       []*SLOOutput `json:"successes"`
 }
 
 type ReportResult struct {
@@ -213,15 +214,19 @@ func (re *Report) Populate(cs *summary.ConsolidatedSummary) error {
 		HasMetricsData: cs.Provider.HasMetrics,
 	}
 
+	// Checks need to run after the report is populated, so it can evaluate the
+	// data entirelly.
 	checks := NewCheckSummary(re)
 	err := checks.Run()
 	if err != nil {
 		log.Debugf("one or more errors found when running checks: %v", err)
 	}
+	pass, fail := checks.GetCheckResults()
 	re.Checks = &ReportChecks{
-		BaseURL: checks.GetBaseURL(),
-		Pass:    checks.GetChecksPassed(),
-		Fail:    checks.GetChecksFailed(),
+		BaseURL:    checks.GetBaseURL(),
+		EmptyValue: CheckIdEmptyValue,
+		Pass:       pass,
+		Fail:       fail,
 	}
 	if len(re.Checks.Fail) > 0 {
 		re.Summary.Alerts.Checks = "danger"
@@ -410,9 +415,13 @@ func (re *Report) populatePluginConformance(rs *summary.ResultSummary, reResult 
 	reResult.Plugins[pluginID].Stat.FilterBaseline = int64(len(pluginSum.FailedFilterBaseline))
 	reResult.Plugins[pluginID].Stat.FilterFailedPrio = int64(len(pluginSum.FailedFilterPrio))
 	reResult.Plugins[pluginID].ErrorCounters = pluginSum.GetErrorCounters()
+
 	// Will consider passed when all conformance tests have passed (removing monitor)
-	if reResult.Plugins[pluginID].Stat.FilterSuite == 0 {
-		reResult.Plugins[pluginID].Stat.Result = "passed"
+	hasRuntimeError := (reResult.Plugins[pluginID].Stat.Total == 1) && (reResult.Plugins[pluginID].Stat.Failed == 1)
+	if !hasRuntimeError {
+		if reResult.Plugins[pluginID].Stat.FilterSuite == 0 {
+			reResult.Plugins[pluginID].Stat.Result = "passed"
+		}
 	}
 
 	if reResult.Plugins[pluginID].Stat.FilterFailedPrio != 0 {

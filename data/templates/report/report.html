@@ -473,9 +473,9 @@ preventing conflict with Vue/JS language. -->
         // build hyperlinks in the name (when exists)
         dtFailures = []
         for (let check of this.report.checks.failures) {
-          if (check.reference != "" && check.patched == undefined) {
+          if (check.documentation != this.report.checks.emptyValue && check.patched == undefined) {
             check.patched = true
-            check.name = "<a href=\""+ check.reference +"\" target=\"_blank\">"+ check.name +"</a><br>"
+            check.name = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
           }
           dtFailures.push(check)
         }
@@ -483,16 +483,16 @@ preventing conflict with Vue/JS language. -->
           header: "Failed Checks [must be fixed] ("+ dtFailures.length +")",
           data: dtFailures,
           headline: "",
-          fields: fields=["name","result"],
-          fieldMap: {}
+          fields: fields=["id","slo", "sloResult", "sliTarget", "sliCurrent"],
+          fieldMap: {"id":"ID", "slo":"NAME", "sloResult": "RESULT","sliTarget":"WANT", "sliCurrent":"CURRENT"}
         }
         this.menuBody += this.createTableHTML(table=tbFailures);
 
         dtSuccess = []
         for (let check of this.report.checks.successes) {
-          if (check.reference != "" && check.patched == undefined) {
+          if (check.documentation != this.report.checks.emptyValue && check.patched == undefined) {
             check.patched = true
-            check.name = "<a href=\""+ check.reference +"\" target=\"_blank\">"+ check.name +"</a><br>"
+            check.name = "<a href=\""+ check.documentation +"\" target=\"_blank\">"+ check.slo +"</a><br>"
           }
           dtSuccess.push(check)
         }
@@ -500,8 +500,8 @@ preventing conflict with Vue/JS language. -->
           header: "Passed checks ("+ dtSuccess.length +")",
           data: dtSuccess,
           headline: "",
-          fields: fields=["name","result"],
-          fieldMap: {}
+          fields: fields=["id","slo", "sloResult", "sliTarget", "sliCurrent"],
+          fieldMap: {"id":"ID", "slo":"NAME", "sloResult": "RESULT","sliTarget":"WANT", "sliCurrent":"CURRENT"}
         }
         this.menuBody += this.createTableHTML(table=tSucc);
       },
@@ -510,7 +510,7 @@ preventing conflict with Vue/JS language. -->
         table = [{
           "Plugin Name": plugin.id,
           "Time": this.report.summary.runtime.plugins[name],
-          "Result": plugin.stat.filterSuite == 0 ? "passed" : plugin.stat.status,
+          "Result": plugin.stat.result,
           "Status": plugin.stat.status,
           "Total": plugin.stat.total,
           "Passed": plugin.stat.passed,

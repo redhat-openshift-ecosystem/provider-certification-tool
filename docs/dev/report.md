@@ -41,9 +41,32 @@ sequenceDiagram
   Reviewer->>Reviewer/Output: Navigate/Explore the results
 ```
 
-## Frontend
+## Data Pipeline
 
-> TODO: detail about the frontend construct.
+### Collector
+
+> TODO describe the data collected by plugins
+
+### ELT (Extractor/Load/Transform)
+
+> TODO: describe what data source is extracted, which package, what data is extracted, and how it is transformed in the "report"
+
+### Viewer
+
+There are two types of viewers, consuming the data sources:
+
+- CLI Report
+- HTML Report (served by HTTP server)
+
+## View Frontend
+
+### CLI
+
+> TODO describe the CLI viewer
+
+### Frontend
+
+> TODO: detail about the frontend viewer construct.
 
 
 ## Explore the data

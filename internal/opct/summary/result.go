@@ -280,6 +280,7 @@ func (rs *ResultSummary) populateSummary() error {
 		pathResourceClusterVersions  = "resources/cluster/config.openshift.io_v1_clusterversions.json"
 		pathResourceClusterOperators = "resources/cluster/config.openshift.io_v1_clusteroperators.json"
 		pathResourceClusterNetwork   = "resources/cluster/config.openshift.io_v1_networks.json"
+		pathResourceNodes            = "resources/cluster/core_v1_nodes.json"
 		pathPluginArtifactTestsK8S   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_e2e-tests_kubernetes-conformance.txt"
 		pathPluginArtifactTestsOCP   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_e2e-tests_openshift-conformance.txt"
 		pathPluginDefinition10       = "plugins/10-openshift-kube-conformance/definition.json"
@@ -306,13 +307,14 @@ func (rs *ResultSummary) populateSummary() error {
 
 	metaRunLogs := bytes.Buffer{}
 	metaConfig := archive.MetaConfigSonobuoy{}
-	opctConfigMapList := v1.ConfigMapList{}
 
 	sbCluster := discovery.ClusterSummary{}
 	ocpInfra := configv1.InfrastructureList{}
 	ocpCV := configv1.ClusterVersionList{}
 	ocpCO := configv1.ClusterOperatorList{}
 	ocpCN := configv1.NetworkList{}
+	opctConfigMapList := v1.ConfigMapList{}
+	nodes := v1.NodeList{}
 
 	pluginDef10 := SonobuoyPluginDefinition{}
 	pluginDef20 := SonobuoyPluginDefinition{}
@@ -366,6 +368,9 @@ func (rs *ResultSummary) populateSummary() error {
 		if err := results.ExtractFileIntoStruct(pathResourceNSOpctConfigMap, path, info, &opctConfigMapList); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
 		}
+		if err := results.ExtractFileIntoStruct(pathResourceNodes, path, info, &nodes); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
+		}
 		if saveToFlagEnabled {
 			if warn := results.ExtractBytes(pathMustGather, path, info, &mustGather); warn != nil {
 				log.Warnf("Unable to load file %s: %v\n", pathMustGather, warn)
@@ -379,6 +384,7 @@ func (rs *ResultSummary) populateSummary() error {
 				log.Warnf("Unable to load file %s: %v\n", pathCAMIG, warn)
 				return errors.Wrap(warn, fmt.Sprintf("extracting file '%s': %v", path, warn))
 			}
+			// extract podLogs, container plugin
 			if re.MatchString(path) {
 				var raw bytes.Buffer
 				if warn := results.ExtractBytes(path, path, info, &raw); warn != nil {
@@ -420,6 +426,9 @@ func (rs *ResultSummary) populateSummary() error {
 		return err
 	}
 	if err := rs.GetOpenShift().SetClusterNetwork(&ocpCN); err != nil {
+		return err
+	}
+	if err := rs.GetOpenShift().SetNodes(&nodes); err != nil {
 		return err
 	}
 	if err := rs.Suites.KubernetesConformance.Load(pathPluginArtifactTestsK8S, &testsSuiteK8S); err != nil {

@@ -50,6 +50,7 @@ type ReportResult struct {
 	MustGatherInfo   *mustgather.MustGather   `json:"mustGatherInfo,omitempty"`
 	ErrorCounters    *archive.ErrorCounter    `json:"errorCounters,omitempty"`
 	Runtime          *ReportRuntime           `json:"runtime,omitempty"`
+	Nodes            []*summary.Node          `json:"nodes,omitempty"`
 }
 
 type ReportSummary struct {
@@ -296,6 +297,9 @@ func (re *Report) populateSource(rs *summary.ResultSummary) error {
 		CountProgressing: co.CountProgressing,
 		CountDegraded:    co.CountDegraded,
 	}
+
+	// Node
+	reResult.Nodes = rs.GetOpenShift().GetNodes()
 
 	// Node and Pod Status
 	sbCluster := rs.GetSonobuoyCluster()

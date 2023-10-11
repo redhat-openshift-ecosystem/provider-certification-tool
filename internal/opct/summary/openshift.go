@@ -3,10 +3,13 @@ package summary
 import (
 	"fmt"
 	"regexp"
+	"strconv"
+	"strings"
 
 	configv1 "github.com/openshift/api/config/v1"
 	"github.com/pkg/errors"
 	"github.com/redhat-openshift-ecosystem/provider-certification-tool/internal/opct/plugin"
+	v1 "k8s.io/api/core/v1"
 )
 
 // OpenShiftSummary holds the data collected from artifacts related to OpenShift objects.
@@ -15,6 +18,7 @@ type OpenShiftSummary struct {
 	ClusterVersion   *configv1.ClusterVersion
 	ClusterOperators *configv1.ClusterOperatorList
 	ClusterNetwork   *configv1.Network
+	Nodes            []*Node
 
 	// Plugin Results
 	PluginResultK8sConformance     *plugin.OPCTPluginSummary
@@ -52,6 +56,19 @@ type SummaryClusterOperatorOutput struct {
 type SummaryOpenShiftInfrastructureV1 = configv1.Infrastructure
 type SummaryOpenShiftClusterNetworkV1 = configv1.Network
 type SummaryOpenShiftNetworkV1 = configv1.Network
+
+type Node struct {
+	Hostname          string `json:"hostname,omitempty"`
+	Architecture      string `json:"architecture,omitempty"`
+	OperatingSystem   string `json:"os,omitempty"`
+	OperatingSystemId string `json:"osId,omitempty"`
+	CreationDate      string `json:"creationDate,omitempty"`
+	NodeRoles         string `json:"nodeRoles,omitempty"`
+	TaintsNodeRole    string `json:"taints,omitempty"`
+	CapacityCPU       string `json:"capacityCpu,omitempty"`
+	CapacityStorageGB string `json:"capacityStorageGB,omitempty"`
+	CapacityMemGB     string `json:"capacityMemGB,omitempty"`
+}
 
 func NewOpenShiftSummary() *OpenShiftSummary {
 	return &OpenShiftSummary{}
@@ -189,6 +206,65 @@ func (os *OpenShiftSummary) SetClusterNetwork(cn *configv1.NetworkList) error {
 		return errors.New("Unable to find result Items to set ClusterNetwork")
 	}
 	os.ClusterNetwork = &cn.Items[0]
+	return nil
+}
+
+func (os *OpenShiftSummary) GetNodes() []*Node {
+	return os.Nodes
+}
+
+func (os *OpenShiftSummary) SetNodes(nodes *v1.NodeList) error {
+	if len(nodes.Items) == 0 {
+		return errors.New("Unable to find result Items to set Nodes")
+	}
+	sizeToHuman := func(size string) string {
+		sizeNumber := strings.Split(size, "Ki")[0]
+		sizeInteger, err := strconv.Atoi(sizeNumber)
+		if err != nil {
+			return size
+		}
+		return fmt.Sprintf("%.2f", float64((sizeInteger/1024)/1024))
+	}
+	for _, node := range nodes.Items {
+		// transforming from complext k8s type to simple structure.
+		customNode := Node{
+			// Hostname: node.Status.Addresses,
+			CapacityCPU:       node.Status.Capacity.Cpu().String(),
+			CapacityStorageGB: sizeToHuman(node.Status.Capacity.StorageEphemeral().String()),
+			CapacityMemGB:     sizeToHuman(node.Status.Capacity.Memory().String()),
+			CreationDate:      node.GetObjectMeta().GetCreationTimestamp().String(),
+		}
+		// parse labels
+		for label, value := range node.GetObjectMeta().GetLabels() {
+			switch label {
+			case "kubernetes.io/os":
+				customNode.OperatingSystem = value
+				continue
+			case "kubernetes.io/hostname":
+				customNode.Hostname = value
+				continue
+			case "kubernetes.io/arch":
+				customNode.Architecture = value
+				continue
+			case "node.openshift.io/os_id":
+				customNode.OperatingSystemId = value
+				continue
+			}
+			if strings.HasPrefix(label, "node-role.kubernetes.io") {
+				if roleArr := strings.Split(label, "node-role.kubernetes.io/"); len(roleArr) == 2 {
+					customNode.NodeRoles += fmt.Sprintf("%s ", roleArr[1])
+					continue
+				}
+			}
+		}
+		// parse taints
+		for _, taint := range node.Spec.Taints {
+			if strings.HasPrefix(taint.Key, "node-role") {
+				customNode.TaintsNodeRole += fmt.Sprintf("%s:%s ", taint.Key, taint.Effect)
+			}
+		}
+		os.Nodes = append(os.Nodes, &customNode)
+	}
 	return nil
 }
 

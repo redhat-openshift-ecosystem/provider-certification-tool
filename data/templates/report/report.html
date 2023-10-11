@@ -406,6 +406,15 @@ preventing conflict with Vue/JS language. -->
           },
         ]
         this.menuBody += this.createTableRevHTML(table={data: dataPerf});
+
+        let tbNodes = {
+          header: "Node Info",
+          data: this.report.provider.nodes,
+          headline: "",
+          fields: ["hostname", "osId", "architecture", "capacityCpu", "capacityMemGB","capacityStorageGB", "nodeRoles", "taints", "creationDate"],
+          fieldMap: {"capacityCpu": "CPU", "capacityMemGB": "Mem(GB)", "capacityStorageGB": "Storage(GB)"}
+        }
+        this.menuBody += this.createTableHTML(table=tbNodes);
       },
       changeMenuSuiteError() {
         this.menuTitle = `<h1>Suite Errors</h1>`

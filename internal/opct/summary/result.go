@@ -47,8 +47,9 @@ type ResultSummary struct {
 	// MustGather stores the extracted items from must-gather.
 	MustGather *mustgather.MustGather
 
-	HasCAMGI   bool
-	HasMetrics bool
+	HasCAMGI         bool
+	HasMetrics       bool
+	HasInstallConfig bool
 
 	Metrics *mustgathermetrics.MustGatherMetrics
 }
@@ -289,6 +290,7 @@ func (rs *ResultSummary) populateSummary() error {
 		pathMetaRun                 = "meta/run.log"
 		pathMetaConfig              = "meta/config.json"
 		pathResourceNSOpctConfigMap = "resources/ns/openshift-provider-certification/core_v1_configmaps.json"
+		pathResourceNsKubeConfigMap = "resources/ns/kube-system/core_v1_configmaps.json"
 		pathCAMIG                   = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather_camgi.html"
 		pathMetrics                 = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather-metrics.tar.xz"
 
@@ -314,6 +316,7 @@ func (rs *ResultSummary) populateSummary() error {
 	ocpCO := configv1.ClusterOperatorList{}
 	ocpCN := configv1.NetworkList{}
 	opctConfigMapList := v1.ConfigMapList{}
+	kubeSystemConfigMapList := v1.ConfigMapList{}
 	nodes := v1.NodeList{}
 
 	pluginDef10 := SonobuoyPluginDefinition{}
@@ -369,6 +372,9 @@ func (rs *ResultSummary) populateSummary() error {
 			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
 		}
 		if err := results.ExtractFileIntoStruct(pathResourceNodes, path, info, &nodes); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
+		}
+		if err := results.ExtractFileIntoStruct(pathResourceNsKubeConfigMap, path, info, &kubeSystemConfigMapList); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("extracting file '%s': %v", path, err))
 		}
 		if saveToFlagEnabled {
@@ -476,7 +482,19 @@ func (rs *ResultSummary) populateSummary() error {
 		} else {
 			log.Error("Processing results/Populating/Populating Summary/Processing/MetricsData: Not Found")
 		}
-
+		// extract install-config
+		if kubeSystemConfigMapList.Items != nil && len(kubeSystemConfigMapList.Items) > 0 {
+			for _, config := range kubeSystemConfigMapList.Items {
+				if config.ObjectMeta.Name == "cluster-config-v1" {
+					dest := fmt.Sprintf("%s/install-config.txt", rs.SavePath)
+					err := os.WriteFile(dest, []byte(config.Data["install-config"]), 0644)
+					if err != nil {
+						log.Errorf("Processing results/Populating/Populating Summary/Extracting/install-config: %v", err)
+					}
+					rs.HasInstallConfig = true
+				}
+			}
+		}
 	}
 	return nil
 }

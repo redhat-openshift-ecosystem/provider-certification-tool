@@ -62,8 +62,9 @@ type ReportSummary struct {
 }
 
 type ReportSummaryFeatures struct {
-	HasCAMGI       bool `json:"hasCAMGI,omitempty"`
-	HasMetricsData bool `json:"hasMetricsData,omitempty"`
+	HasCAMGI         bool `json:"hasCAMGI,omitempty"`
+	HasMetricsData   bool `json:"hasMetricsData,omitempty"`
+	HasInstallConfig bool `json:"hasInstallConfig,omitempty"`
 }
 
 type ReportSummaryRuntime struct {
@@ -211,8 +212,9 @@ func (re *Report) Populate(cs *summary.ConsolidatedSummary) error {
 	}
 
 	re.Summary.Features = ReportSummaryFeatures{
-		HasCAMGI:       cs.Provider.HasCAMGI,
-		HasMetricsData: cs.Provider.HasMetrics,
+		HasCAMGI:         cs.Provider.HasCAMGI,
+		HasMetricsData:   cs.Provider.HasMetrics,
+		HasInstallConfig: cs.Provider.HasInstallConfig,
 	}
 
 	// Checks need to run after the report is populated, so it can evaluate the

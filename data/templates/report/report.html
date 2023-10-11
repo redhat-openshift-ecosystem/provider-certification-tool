@@ -351,6 +351,10 @@ preventing conflict with Vue/JS language. -->
         this.menuBody += `<dt class="text-light bg-secondary ps-1 mb-1"> Cluster </dt>`
         this.menuBody += `<table class="table table-sm table-striped font-monospace">
           <tbody><tr><th scope="col">Result file</th><td>`+ this.archiveName +`</td></tr></tbody></table>`
+        installConfigRef = "--"
+        if (this.report.summary.features.hasInstallConfig != undefined && this.report.summary.features.hasInstallConfig == true) {
+          installConfigRef = "<a href=\"./install-config.txt\" target=\"_blank\">install-config.yaml</a><br>"
+        }
         dataCluster = [
           {
             "OpenShift:": this.report.provider.version.openshift.desired,
@@ -367,6 +371,9 @@ preventing conflict with Vue/JS language. -->
           {
             "Topology:": this.report.provider.infra.topology,
             "ControlPlaneTopology:": this.report.provider.infra.controlPlaneTopology
+          },
+          {
+            "InstallConfig:": installConfigRef
           }
         ]
         this.menuBody += this.createTableRevHTML(table={data: dataCluster});

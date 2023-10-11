@@ -519,7 +519,8 @@ func (re *Report) SaveResults(path string) error {
 	checkOrPanic(err)
 
 	// render the template files from frontend report pages.
-	for _, file := range []string{"report.html", "filter.html"} {
+	for _, file := range []string{"report.html", "report.css", "filter.html"} {
+		log.Debugf("Processing file %s\n", file)
 		srcTemplate := fmt.Sprintf("%s/%s", ReportTemplateBasePath, file)
 		destFile := fmt.Sprintf("%s/opct-%s", path, file)
 

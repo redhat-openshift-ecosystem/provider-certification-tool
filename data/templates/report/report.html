@@ -16,42 +16,7 @@ preventing conflict with Vue/JS language. -->
   <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
   <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
 
-  <!-- Load polyfills to support older browsers -->
-  <!-- <script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script> -->
-
-  <!-- Load Vue followed by BootstrapVue -->
-  <!-- <script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script>
-  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script> -->
-
-  <!-- Load the following for BootstrapVueIcons support -->
-  <!-- <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script> -->
-
-<style>
-  /* styles: Tab */
-  /* Style the tab */
-  .tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; }
-
-  /* Style the buttons that are used to open the tab content */
-  .tab button { background-color: inherit; float: left; border: none; outline: none;
-    cursor: pointer; padding: 14px 16px; transition: 0.3s; }
-
-  /* Change background color of buttons on hover */
-  .tab button:hover { background-color: #ddd; }
-
-  /* Create an active/current tablink class */
-  .tab button.active { background-color: #ccc; }
-
-  /* Style the tab content */
-  .tabcontent { display: none; padding: 6px 12px; border: 1px solid #ccc; border-top: none; }
-
-  /* styles: OPCT */
-  div#nav-col ul { list-style: none; }
-
-  data { display: none; }
-  #nav-col { max-width: 200px; }
-  span.float-right { float: right; }
-  table { font-size: 8pt; }
-</style>
+  <link type="text/css" rel="stylesheet" href="./opct-report.css" />
 
 </head>
 <body>
@@ -69,104 +34,109 @@ preventing conflict with Vue/JS language. -->
 
 <!-- Tab content: OPCT -->
 <div id="OPCT" class="tabcontent">
-    <div id="app_opct">
-      <div class="row mt-2">
-        <!-- OPCT side nav menu -->
-        <div class="col-2" id="nav-col">
-          <div class="list-group">
-            <!-- <a href="#" v-on:click="changeContent('summary')" class="list-group-item list-group-item-action">Summary</a> -->
-            <a href="#" v-on:click="changeMenu('summary')" class="list-group-item list-group-item-action">Summary</a>
-            <a href="#" v-on:click="changeMenu('checks')" class="list-group-item list-group-item-action">Checks
-              [[ if .Summary.Alerts.Checks ]]
-              <span class= "badge bg-[[ .Summary.Alerts.Checks ]] float-right">[[ .Summary.Alerts.ChecksMessage ]]</span>
-              [[ end ]]
-            </a>
-            <!-- TODO: move plugin page rendering from Go template (static) to changeMenu (js, dynamic page) -->
-            <!-- <a href="#" v-on:click="changeContent('10-openshift-kube-conformance')" class="list-group-item list-group-item-action">Suite Kubernetes -->
-            <a href="#" v-on:click="changeMenu('10-openshift-kube-conformance')" class="list-group-item list-group-item-action">Suite Kubernetes
-              [[ if .Summary.Alerts.PluginK8S ]]
-              <span class= "badge bg-[[ .Summary.Alerts.PluginK8S ]] float-right">[[ .Summary.Alerts.PluginK8SMessage ]]</span>
-              [[ end ]]
-            </a>
-            <!-- <a href="#" v-on:click="changeContent('20-openshift-conformance-validated')" class="list-group-item list-group-item-action">Suite OpenShift -->
-            <a href="#" v-on:click="changeMenu('20-openshift-conformance-validated')" class="list-group-item list-group-item-action">Suite OpenShift
-              [[ if .Summary.Alerts.PluginOCP ]]
-              <span class= "badge bg-[[ .Summary.Alerts.PluginOCP ]] float-right">[[ .Summary.Alerts.PluginOCPMessage ]]</span>
-              [[ end ]]
-            </a>
-            <a href="#" v-on:click="changeMenu('suite-errors')" class="list-group-item list-group-item-action">Suite Errors
-              [[ if .Summary.Alerts.SuiteErrors ]]
-              <span class= "badge bg-[[ .Summary.Alerts.SuiteErrors ]] float-right">[[ .Summary.Alerts.SuiteErrorsMessage ]]</span>
-              [[ end ]]
-            </a>
-            <a href="#" v-on:click="changeMenu('workload-errors')" class="list-group-item list-group-item-action">Workload Errors
-              [[ if .Summary.Alerts.WorkloadErrors ]]
-              <span class= "badge bg-[[ .Summary.Alerts.WorkloadErrors ]] float-right">[[ .Summary.Alerts.WorkloadErrorsMessage ]]</span>
-              [[ end ]]
-            </a>
-            <a href="#" v-on:click="changeMenu('etcd')" class="list-group-item list-group-item-action">etcd</a>
-            <a href="#" v-on:click="changeMenu('network')" class="list-group-item list-group-item-action">Network</a>
-            <a href="#" v-on:click="changeMenu('runtime')" class="list-group-item list-group-item-action">Runtime</a>
-            <a class="list-group-item list-group-item-action disabled">Suite Upgrade</a>
-            <a class="list-group-item list-group-item-action disabled">Plugin Artifacts</a>
+  <div class="alert">
+    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+    <strong>Warning!</strong> This report is under developer preview.
+    If you encounter any issues or bugs, please report on <a href="https://github.com/redhat-openshift-ecosystem/provider-certification-tool/issues/new/choose" target="_blank">Github Project</a> or in
+    <a href="https://issues.redhat.com/projects/OPCT/summary" target="_blank">Jira</a>. Thanks!
+  </div>
+  <div id="app_opct">
+    <div class="row mt-2">
+      <!-- OPCT side nav menu -->
+      <div class="col-2" id="nav-col">
+        <div class="list-group">
+          <!-- <a href="#" v-on:click="changeContent('summary')" class="list-group-item list-group-item-action">Summary</a> -->
+          <a href="#" v-on:click="changeMenu('summary')" class="list-group-item list-group-item-action">Summary</a>
+          <a href="#" v-on:click="changeMenu('checks')" class="list-group-item list-group-item-action">Checks
+            [[ if .Summary.Alerts.Checks ]]
+            <span class= "badge bg-[[ .Summary.Alerts.Checks ]] float-right">[[ .Summary.Alerts.ChecksMessage ]]</span>
+            [[ end ]]
+          </a>
+          <!-- TODO: move plugin page rendering from Go template (static) to changeMenu (js, dynamic page) -->
+          <!-- <a href="#" v-on:click="changeContent('10-openshift-kube-conformance')" class="list-group-item list-group-item-action">Suite Kubernetes -->
+          <a href="#" v-on:click="changeMenu('10-openshift-kube-conformance')" class="list-group-item list-group-item-action">Suite Kubernetes
+            [[ if .Summary.Alerts.PluginK8S ]]
+            <span class= "badge bg-[[ .Summary.Alerts.PluginK8S ]] float-right">[[ .Summary.Alerts.PluginK8SMessage ]]</span>
+            [[ end ]]
+          </a>
+          <!-- <a href="#" v-on:click="changeContent('20-openshift-conformance-validated')" class="list-group-item list-group-item-action">Suite OpenShift -->
+          <a href="#" v-on:click="changeMenu('20-openshift-conformance-validated')" class="list-group-item list-group-item-action">Suite OpenShift
+            [[ if .Summary.Alerts.PluginOCP ]]
+            <span class= "badge bg-[[ .Summary.Alerts.PluginOCP ]] float-right">[[ .Summary.Alerts.PluginOCPMessage ]]</span>
+            [[ end ]]
+          </a>
+          <a href="#" v-on:click="changeMenu('suite-errors')" class="list-group-item list-group-item-action">Suite Errors
+            [[ if .Summary.Alerts.SuiteErrors ]]
+            <span class= "badge bg-[[ .Summary.Alerts.SuiteErrors ]] float-right">[[ .Summary.Alerts.SuiteErrorsMessage ]]</span>
+            [[ end ]]
+          </a>
+          <a href="#" v-on:click="changeMenu('workload-errors')" class="list-group-item list-group-item-action">Workload Errors
+            [[ if .Summary.Alerts.WorkloadErrors ]]
+            <span class= "badge bg-[[ .Summary.Alerts.WorkloadErrors ]] float-right">[[ .Summary.Alerts.WorkloadErrorsMessage ]]</span>
+            [[ end ]]
+          </a>
+          <a href="#" v-on:click="changeMenu('etcd')" class="list-group-item list-group-item-action">etcd</a>
+          <a href="#" v-on:click="changeMenu('network')" class="list-group-item list-group-item-action">Network</a>
+          <a href="#" v-on:click="changeMenu('runtime')" class="list-group-item list-group-item-action">Runtime</a>
+          <a class="list-group-item list-group-item-action disabled">Suite Upgrade</a>
+          <a class="list-group-item list-group-item-action disabled">Plugin Artifacts</a>
 
-            <!-- TODO: parse firing alerts
-            <a class="list-group-item list-group-item-action disabled">Monitoring</a>  -->
+          <!-- TODO: parse firing alerts
+          <a class="list-group-item list-group-item-action disabled">Monitoring</a>  -->
 
-            <!-- TODO: Temp disablied. Download report will be useful when can import/upload remote results.
-            <button id="download" @click="downloadReport">Download</button> -->
-            <!-- <td>
-              <label for="files" class="btn">Upload</label>
-              <input id="files" style="visibility:hidden;" type="file" ref="file" @change="uploadReport">
-            </td> -->
+          <!-- TODO: Temp disablied. Download report will be useful when can import/upload remote results.
+          <button id="download" @click="downloadReport">Download</button> -->
+          <!-- <td>
+            <label for="files" class="btn">Upload</label>
+            <input id="files" style="visibility:hidden;" type="file" ref="file" @change="uploadReport">
+          </td> -->
 
-            <a href="https://redhat-openshift-ecosystem.github.io/provider-certification-tool/user/" class="list-group-item list-group-item-action text-center" target="_blank">
-              <img src="https://github.com/favicon.ico" alt="GitHub logo" title="Found a bug or issue? Visit this project's git repo.">
-            </a>
-          </div>
-        </div>
-        <!-- OPCT content -->
-        <div class="col-10">
-          <div v-if="isLoading">
-            <div>Loading... ({{ loadingMessage }})</div>
-          </div>
-          <div id="main-content" class="overflow-auto"><span v-html="menuTitle"></span></div>
-          <div id="main-content" class="overflow-auto"><span v-html="menuBody"></span></div>
+          <a href="https://redhat-openshift-ecosystem.github.io/provider-certification-tool/user/" class="list-group-item list-group-item-action text-center" target="_blank">
+            <img src="https://github.com/favicon.ico" alt="GitHub logo" title="Found a bug or issue? Visit this project's git repo.">
+          </a>
         </div>
       </div>
+      <!-- OPCT content -->
+      <div class="col-10">
+        <div v-if="isLoading">
+          <div>Loading... ({{ loadingMessage }})</div>
+        </div>
+        <div id="main-content" class="overflow-auto"><span v-html="menuTitle"></span></div>
+        <div id="main-content" class="overflow-auto"><span v-html="menuBody"></span></div>
+      </div>
     </div>
+  </div>
 </div>
 
 
 <!-- TAB START CAMGI -->
 <div id="CAMGI" class="tabcontent">
 [[ if .Summary.Features.HasCAMGI ]]
-    <iframe src="./artifacts_must-gather_camgi.html" height="800" width="100%" title="Iframe Example"></iframe>
+  <iframe src="./artifacts_must-gather_camgi.html" height="800" width="100%" title="Iframe Example"></iframe>
 [[ else ]]
-        <p><a href="https://github.com/elmiko/camgi.rs">CAMGI</a>, Cluster Autoscaler Must Gather Investigator, is a tool for examining OKD/OpenShift must-gather
-          records to investigate cluster autoscaler behavior and configuration.</p>
-        <p>Steps to use with OPCT:</p>
-        <ul>
-        <li>1) download the tool</li>
-        <li>2) extract must-gather from artifacts</li>
-        </ul>
-        <pre><code class="lang-sh"><span class="hljs-comment">
-    # Extract the OPCT result file (artifacts.tar.gz)</span>
-    mkdir results &amp;&amp; \
-    tar xfz artifacts.tar.gz -C results
-    <span class="hljs-comment">
-    # Extract the must-gather (requires xz)</span>
-    mkdir results<span class="hljs-regexp">/must-gather &amp;&amp; \
-    tar xfJ results/</span>plugins<span class="hljs-regexp">/99-openshift-artifacts-collector/</span>results<span class="hljs-regexp">/global/</span>artifacts_must-gather.tar.xz -C results<span class="hljs-regexp">/must-gather</span>
-        </code></pre>
-        <ul><li>3) run camgi</li></ul>
-        <pre><code class="lang-sh">.<span class="hljs-regexp">/camgi results/mu</span>st-gather &gt; results<span class="hljs-regexp">/camgi.html</span>
-        </code></pre>
-        <ul><li>4) Open the file results/camgi.html in your browser.</li></ul>
-        <blockquote><blockquote>
-        <p>TODO: collect the camgd.html in the artifacts plugin.</p>
-        </blockquote></blockquote>
-        </div>
+  <p><a href="https://github.com/elmiko/camgi.rs">CAMGI</a>, Cluster Autoscaler Must Gather Investigator, is a tool for examining OKD/OpenShift must-gather
+    records to investigate cluster autoscaler behavior and configuration.</p>
+  <p>Steps to use with OPCT:</p>
+  <ul>
+  <li>1) download the tool</li>
+  <li>2) extract must-gather from artifacts</li>
+  </ul>
+  <pre><code class="lang-sh"><span class="hljs-comment">
+# Extract the OPCT result file (artifacts.tar.gz)</span>
+mkdir results &amp;&amp; \
+tar xfz artifacts.tar.gz -C results
+<span class="hljs-comment">
+# Extract the must-gather (requires xz)</span>
+mkdir results<span class="hljs-regexp">/must-gather &amp;&amp; \
+tar xfJ results/</span>plugins<span class="hljs-regexp">/99-openshift-artifacts-collector/</span>results<span class="hljs-regexp">/global/</span>artifacts_must-gather.tar.xz -C results<span class="hljs-regexp">/must-gather</span>
+  </code></pre>
+  <ul><li>3) run camgi</li></ul>
+  <pre><code class="lang-sh">.<span class="hljs-regexp">/camgi results/mu</span>st-gather &gt; results<span class="hljs-regexp">/camgi.html</span>
+  </code></pre>
+  <ul><li>4) Open the file results/camgi.html in your browser.</li></ul>
+  <blockquote><blockquote>
+  <p>TODO: collect the camgd.html in the artifacts plugin.</p>
+  </blockquote></blockquote>
 [[ end ]]
 </div>
 <!-- Tab END CAMGI -->

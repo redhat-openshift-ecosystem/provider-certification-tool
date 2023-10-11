@@ -110,7 +110,7 @@ func (rs *ResultSummary) Populate() error {
 	}
 
 	log.Debugf("Processing results/Populating/Populating Summary")
-	err = rs.populateSummary()
+	err = rs.extractAndLoadData()
 	if err != nil {
 		lastErr = err
 	}
@@ -271,10 +271,11 @@ func (rs *ResultSummary) processPluginResult(obj *results.Item) error {
 	return nil
 }
 
-// populateSummary load all files from archive reader and extract desired
+// extractDataFromTarball load all files from archive reader and extract desired
 // information to the ResultSummary.
-func (rs *ResultSummary) populateSummary() error {
+func (rs *ResultSummary) extractAndLoadData() error {
 
+	// Path to files insides Sonobuoy tarball
 	const (
 		// OpenShift Custom Resources locations on archive file
 		pathResourceInfrastructures  = "resources/cluster/config.openshift.io_v1_infrastructures.json"
@@ -299,6 +300,7 @@ func (rs *ResultSummary) populateSummary() error {
 		pathMustGather              = "plugins/99-openshift-artifacts-collector/results/global/artifacts_must-gather.tar.xz"
 	)
 
+	// Data bindings
 	mustGather := bytes.Buffer{}
 	saveToFlagEnabled := rs.SavePath != ""
 	testsSuiteK8S := bytes.Buffer{}

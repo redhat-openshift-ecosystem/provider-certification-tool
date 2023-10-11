@@ -22,7 +22,6 @@ type MustGatherMetrics struct {
 }
 
 func NewMustGatherMetrics(report, file string, data *bytes.Buffer) (*MustGatherMetrics, error) {
-
 	return &MustGatherMetrics{
 		fileName:        filepath.Base(file),
 		data:            data,

@@ -47,7 +47,7 @@ func parseMetricsRun(cmd *cobra.Command, args []string) {
 	buf.ReadFrom(r)
 
 	htmlFile := "/metrics.html"
-	mgm, err := mustgathermetrics.NewMustGatherMetrics(parseMetricsArgs.output, htmlFile, buf)
+	mgm, err := mustgathermetrics.NewMustGatherMetrics(parseMetricsArgs.output, htmlFile, "/", buf)
 	if err != nil {
 		panic(err)
 	}

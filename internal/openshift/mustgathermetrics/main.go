@@ -19,14 +19,16 @@ type MustGatherMetrics struct {
 	data            *bytes.Buffer
 	ReportPath      string
 	ReportChartFile string
+	ServePath       string
 }
 
-func NewMustGatherMetrics(report, file string, data *bytes.Buffer) (*MustGatherMetrics, error) {
+func NewMustGatherMetrics(report, file, uri string, data *bytes.Buffer) (*MustGatherMetrics, error) {
 	return &MustGatherMetrics{
 		fileName:        filepath.Base(file),
 		data:            data,
 		ReportPath:      report,
 		ReportChartFile: "/metrics.html",
+		ServePath:       uri,
 	}, nil
 }
 
@@ -58,6 +60,7 @@ func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 	keepReading := true
 	metricsPage := chart.NewMetricsPage()
 	reportPath := mg.ReportPath + mg.ReportChartFile
+	page := chart.NewMetricsPageWithPlotly(mg.ReportPath, mg.ServePath)
 
 	// Walk through files in tarball file.
 	for keepReading {
@@ -67,11 +70,16 @@ func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 
 		// no more files
 		case err == io.EOF:
+
 			err := chart.SaveMetricsPageReport(metricsPage, reportPath)
 			if err != nil {
 				log.Errorf("error saving metrics to: %s\n", reportPath)
 				return err
 			}
+			// Ploty Page
+			log.Debugf("Generating Charts with Plotly\n")
+			page.RenderPage()
+
 			log.Debugf("metrics saved at: %s\n", reportPath)
 			return nil
 
@@ -119,7 +127,8 @@ func (mg *MustGatherMetrics) extract(tarball *tar.Reader) error {
 			log.Debugf("Metrics/Extractor/Processing/ERROR loading metric for %v", err)
 			continue
 		}
-		// metricsPage.AddCharts(chart.NewChart())
+
+		// charts with
 		for _, line := range chart.NewCharts() {
 			metricsPage.AddCharts(line)
 		}

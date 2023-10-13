@@ -49,6 +49,7 @@ type MustGatherMetric struct {
 	CreateChart        func() *charts.Line
 	CollectorAvailable bool
 	MetricData         *PrometheusResponse
+	DivId              string
 }
 
 var ChartsAvailable map[string]*MustGatherMetric
@@ -56,22 +57,22 @@ var ChartsAvailable map[string]*MustGatherMetric
 func init() {
 	ChartsAvailable = make(map[string]*MustGatherMetric, 0)
 	ChartsAvailable["query_range-etcd-disk-fsync-db-duration-p99.json.gz"] = &MustGatherMetric{
-		Path:          "query_range-etcd-disk-fsync-db-duration-p99.json.gz",
-		OriginalQuery: "",
-		PlotLabel:     "instance",
-		PlotTitle:     "etcd fsync DB p99",
-		PlotSubTitle:  "",
-		// CreateChart:        plotETCDp99,
+		Path:               "query_range-etcd-disk-fsync-db-duration-p99.json.gz",
+		OriginalQuery:      "",
+		PlotLabel:          "instance",
+		PlotTitle:          "etcd fsync DB p99",
+		PlotSubTitle:       "",
 		CollectorAvailable: true,
+		DivId:              "id1",
 	}
 	ChartsAvailable["query_range-api-kas-request-duration-p99.json.gz"] = &MustGatherMetric{
-		Path:          "query_range-api-kas-request-duration-p99.json.gz",
-		OriginalQuery: "",
-		PlotLabel:     "verb",
-		PlotTitle:     "Kube API request p99",
-		PlotSubTitle:  "",
-		// CreateChart:        plotKubeAPI,
+		Path:               "query_range-api-kas-request-duration-p99.json.gz",
+		OriginalQuery:      "",
+		PlotLabel:          "verb",
+		PlotTitle:          "Kube API request p99",
+		PlotSubTitle:       "",
 		CollectorAvailable: true,
+		DivId:              "id2",
 	}
 	ChartsAvailable["query_range-etcd-disk-fsync-wal-duration-p99.json.gz"] = &MustGatherMetric{
 		Path:               "query_range-etcd-disk-fsync-wal-duration-p99.json.gz",
@@ -80,6 +81,7 @@ func init() {
 		PlotTitle:          "etcd fsync WAL p99",
 		PlotSubTitle:       "",
 		CollectorAvailable: true,
+		DivId:              "id0",
 	}
 	ChartsAvailable["query_range-etcd-peer-round-trip-time.json.gz"] = &MustGatherMetric{
 		Path:               "query_range-etcd-peer-round-trip-time.json.gz",
@@ -88,6 +90,7 @@ func init() {
 		PlotTitle:          "etcd peer round trip",
 		PlotSubTitle:       "",
 		CollectorAvailable: true,
+		DivId:              "id3",
 	}
 
 	ChartsAvailable["query_range-etcd-total-leader-elections-day.json.gz"] = &MustGatherMetric{
@@ -97,6 +100,7 @@ func init() {
 		PlotTitle:          "etcd peer total leader election",
 		PlotSubTitle:       "",
 		CollectorAvailable: true,
+		DivId:              "id4",
 	}
 	ChartsAvailable["query_range-etcd-request-duration-p99.json.gz"] = &MustGatherMetric{
 		Path:               "query_range-etcd-request-duration-p99.json.gz",
@@ -104,7 +108,8 @@ func init() {
 		PlotLabel:          "operation",
 		PlotTitle:          "etcd req duration p99",
 		PlotSubTitle:       "",
-		CollectorAvailable: false,
+		CollectorAvailable: true,
+		DivId:              "id5",
 	}
 
 	ChartsAvailable["query_range-cluster-storage-iops.json.gz"] = &MustGatherMetric{
@@ -114,6 +119,7 @@ func init() {
 		PlotTitle:          "Cluster storage IOPS",
 		PlotSubTitle:       "",
 		CollectorAvailable: false,
+		DivId:              "id6",
 	}
 	ChartsAvailable["query_range-cluster-storage-throughput.json.gz"] = &MustGatherMetric{
 		Path:               "query_range-cluster-storage-throughput.json.gz",
@@ -122,6 +128,7 @@ func init() {
 		PlotTitle:          "Cluster storage throughput",
 		PlotSubTitle:       "",
 		CollectorAvailable: false,
+		DivId:              "id7",
 	}
 	ChartsAvailable["query_range-cluster-cpu-usage.json.gz"] = &MustGatherMetric{
 		Path:               "query_range-cluster-cpu-usage.json.gz",
@@ -130,6 +137,7 @@ func init() {
 		PlotTitle:          "Cluster CPU",
 		PlotSubTitle:       "",
 		CollectorAvailable: false,
+		DivId:              "id8",
 	}
 }
 
@@ -163,12 +171,13 @@ func (mmm *MustGatherMetric) NewChart() *charts.Line {
 }
 
 func (mmm *MustGatherMetric) NewCharts() []*charts.Line {
-	return mmm.processMetrics(&readMetricInput{
+	in := &readMetricInput{
 		filename: mmm.Path,
 		label:    mmm.PlotLabel,
 		title:    mmm.PlotTitle,
 		subtitle: mmm.PlotSubTitle,
-	})
+	}
+	return mmm.processMetrics(in)
 }
 
 // LoadData generates the metric widget (plot graph from data series).
@@ -235,9 +244,6 @@ func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 		SetSeriesOptions(charts.WithLineChartOpts(
 			opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
 		))
-	// line.SetSeriesOptions(charts.WithLineChartOpts(
-	// 	opts.LineChart{Smooth: false, ShowSymbol: true, SymbolSize: 15, Symbol: "diamond"},
-	// ))
 	for _, chart := range chartData {
 		line.AddSeries(chart.Label, chart.DataPoints)
 	}
@@ -249,7 +255,6 @@ func (mmm *MustGatherMetric) processMetric(in *readMetricInput) *charts.Line {
 func (mmm *MustGatherMetric) processMetrics(in *readMetricInput) []*charts.Line {
 
 	var lines []*charts.Line
-
 	idx := 0
 	for _, res := range mmm.MetricData.Data.Result {
 		allTimestamps := []string{}

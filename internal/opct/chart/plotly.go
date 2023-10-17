@@ -41,7 +41,8 @@ const indexHTML = `<!DOCTYPE html>
 </html>`
 
 // inspired by https://github.com/353words/stocks/tree/main
-const indexJS = `async function updateCharts() {
+const indexJS = `
+async function updateCharts() {
     let chartsResp = await fetch('./index.json');
     let charts = await chartsResp.json(); 
     for (idx in charts) {
@@ -214,9 +215,7 @@ func (cpp *ChartPagePlotly) processMetricV2(name string) error {
 	}
 
 	if len(data) == 0 {
-		// log.Errorf("ERROR no valid data for metric %s", name)
 		return fmt.Errorf("no valid data for metric %s", name)
-		// return nil
 	}
 
 	// create table with rows by label

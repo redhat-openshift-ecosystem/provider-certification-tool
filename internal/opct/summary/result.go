@@ -402,15 +402,18 @@ func (rs *ResultSummary) extractAndLoadData() error {
 				prefix := strings.Split(path, "-job-")
 				if len(prefix) != 2 {
 					log.Warnf("Unable to read podLog prefix for path: %s\n", path)
+					return nil
 				}
 				filepath := strings.Split(prefix[0], "/")
 				if len(filepath) <= 0 {
 					log.Warnf("Unable to read podLog file for path: %s\n", path)
+					return nil
 				}
-				dest := fmt.Sprintf("%slog-%s-plugin.txt", rs.SavePath, filepath[len(filepath)-1])
+				dest := fmt.Sprintf("%s/log-%s-plugin.txt", rs.SavePath, filepath[len(filepath)-1])
 				err := os.WriteFile(dest, raw.Bytes(), 0644)
 				if err != nil {
 					log.Errorf("Processing results/Populating/Populating Summary/Extracting/podLogs/plugins: %v", err)
+					return nil
 				}
 			}
 		}

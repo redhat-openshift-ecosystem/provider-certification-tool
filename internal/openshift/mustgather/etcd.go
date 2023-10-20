@@ -15,6 +15,18 @@ import (
 
 const (
 	parserETCDLogsReqTTLMaxPastHour = 6
+
+	BucketRangeName200Ms   string = "200-300"
+	BucketRangeName300Ms   string = "300-400"
+	BucketRangeName400Ms   string = "400-500"
+	BucketRangeName500Ms   string = "500-600"
+	BucketRangeName600Ms   string = "600-700"
+	BucketRangeName700Ms   string = "700-800"
+	BucketRangeName800Ms   string = "800-900"
+	BucketRangeName900Ms   string = "900-999"
+	BucketRangeName1000Inf string = "1000-inf"
+	BucketRangeName500Inf  string = "500-inf"
+	BucketRangeNameAll     string = "all"
 )
 
 // ErrorEtcdLogs handle errors extracted/parsed from etcd pod logs.
@@ -26,7 +38,7 @@ type ErrorEtcdLogs struct {
 }
 
 // common errors to create counters
-var commonErrorPatternEtcdLogs = []string{
+var EtcdLogErrorPatterns = []string{
 	`rejected connection`,
 	`waiting for ReadIndex response took too long, retrying`,
 	`failed to find remote peer in cluster`,
@@ -47,7 +59,7 @@ func NewErrorEtcdLogs(buf *string) *ErrorEtcdLogs {
 	etcdLogs := &ErrorEtcdLogs{}
 
 	// create counters
-	etcdLogs.ErrorCounters = archive.NewErrorCounter(buf, commonErrorPatternEtcdLogs)
+	etcdLogs.ErrorCounters = archive.NewErrorCounter(buf, EtcdLogErrorPatterns)
 
 	// filter Slow Requests (aggregate by hour)
 	filterATTL1 := NewFilterApplyTookTooLong("hour")
@@ -208,59 +220,59 @@ func (f *FilterApplyTookTooLong) insertBucket(v float64, ts string) {
 		log.Debugf("etcd log parser - got request slower than 200 (should not happen): %v", v)
 
 	case ((v >= 200) && (v < 300)):
-		k := "200-300"
+		k := BucketRangeName200Ms
 		b1s[k] = append(b1s[k], v)
 		b500ms[k] = append(b500ms[k], v)
 
 	case ((v >= 300) && (v < 400)):
-		k := "300-400"
+		k := BucketRangeName300Ms
 		b1s[k] = append(b1s[k], v)
 		b500ms[k] = append(b500ms[k], v)
 
 	case ((v >= 400) && (v < 500)):
-		k := "400-500"
+		k := BucketRangeName400Ms
 
 		b1s[k] = append(b1s[k], v)
 		b500ms[k] = append(b500ms[k], v)
 	case ((v >= 500) && (v < 600)):
-		k := "500-600"
+		k := BucketRangeName500Ms
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 
 	case ((v >= 600) && (v < 700)):
-		k := "600-700"
+		k := BucketRangeName600Ms
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 	case ((v >= 700) && (v < 800)):
-		k := "700-800"
+		k := BucketRangeName700Ms
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 
 	case ((v >= 800) && (v < 900)):
-		k := "800-900"
+		k := BucketRangeName800Ms
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 
 	case ((v >= 900) && (v < 1000)):
-		k := "900-999"
+		k := BucketRangeName900Ms
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 
 	case (v >= 1000):
-		k := "1000-inf"
+		k := BucketRangeName1000Inf
 		b1s[k] = append(b1s[k], v)
 
-		k = "500-inf"
+		k = BucketRangeName500Inf
 		b500ms[k] = append(b500ms[k], v)
 
 	default:
@@ -299,6 +311,9 @@ func (f *FilterApplyTookTooLong) GetStat(latest int) map[string]*BucketFilterSta
 	sort.Strings(groups)
 
 	// filter latest group
+	if latest == 0 {
+		latest = len(groups)
+	}
 	if latest > len(groups) {
 		latest = len(groups)
 	}
@@ -318,12 +333,11 @@ func (f *FilterApplyTookTooLong) GetStat(latest int) map[string]*BucketFilterSta
 			if k == "all" {
 				perc = ""
 			}
-			// return fmt.Sprintf("%8.8s %6s %11.10s", k, fmt.Sprintf("%d", countB1ms), perc)
 			return fmt.Sprintf("%d %s", countB1ms, perc)
 		}
 		statGroups[gk].RequestCount = int64(len(b1s["all"]))
 
-		v500 := len(b500ms["500-inf"])
+		v500 := len(b500ms[BucketRangeName500Inf])
 		perc500inf := (float64(v500) / float64(len(b500ms["all"]))) * 100
 		statGroups[gk].Higher500ms = fmt.Sprintf("%s (%.3f%%)", fmt.Sprintf("%d", v500), perc500inf)
 

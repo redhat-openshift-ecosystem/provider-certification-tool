@@ -117,7 +117,7 @@ func (mg *MustGather) AggregateCounters() {
 			// aggregate etcd error counters
 			if mg.NamespaceErrors[nsi].ErrorEtcdLogs.ErrorCounters != nil {
 				if mg.ErrorEtcdLogs.ErrorCounters == nil {
-					mg.ErrorEtcdLogs.ErrorCounters = make(archive.ErrorCounter, len(commonErrorPatternEtcdLogs))
+					mg.ErrorEtcdLogs.ErrorCounters = make(archive.ErrorCounter, len(EtcdLogErrorPatterns))
 				}
 				for errName, errCounter := range mg.NamespaceErrors[nsi].ErrorEtcdLogs.ErrorCounters {
 					if _, ok := mg.ErrorEtcdLogs.ErrorCounters[errName]; !ok {

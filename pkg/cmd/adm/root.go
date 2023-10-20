@@ -1,7 +1,7 @@
 package adm
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -9,17 +9,19 @@ import (
 var admCmd = &cobra.Command{
 	Use:   "adm",
 	Short: "Administrative commands.",
-	Run:   runGet,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			cmd.Help()
+			os.Exit(0)
+		}
+	},
 }
 
 func init() {
 	admCmd.AddCommand(parseMetricsCmd)
+	admCmd.AddCommand(parseEtcdLogsCmd)
 }
 
 func NewCmdAdm() *cobra.Command {
 	return admCmd
-}
-
-func runGet(cmd *cobra.Command, args []string) {
-	fmt.Println("Nothing to do. See -h for more options.")
 }

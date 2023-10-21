@@ -324,6 +324,11 @@ func (rs *ResultSummary) extractAndLoadData() error {
 	pluginDef10 := SonobuoyPluginDefinition{}
 	pluginDef20 := SonobuoyPluginDefinition{}
 
+	if rs.SavePath != "" {
+		log.Debugf("Creating output directory %s...", rs.SavePath)
+		os.MkdirAll(rs.SavePath, os.ModePerm)
+	}
+
 	pattern := `^podlogs\/.*\/sonobuoy-.*-job-.*\/logs\/plugin.txt`
 	re := regexp.MustCompile(pattern)
 

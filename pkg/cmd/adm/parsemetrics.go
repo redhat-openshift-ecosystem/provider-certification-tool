@@ -40,6 +40,7 @@ func parseMetricsRun(cmd *cobra.Command, args []string) {
 			panic(err)
 		}
 	}()
+
 	// make a read buffer
 	r := bufio.NewReader(fi)
 

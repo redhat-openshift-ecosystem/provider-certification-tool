@@ -1,6 +1,11 @@
 # opct adm parse-etcd-logs
 
-Usage: `opct adm parse-etcd-logs options args`
+Extract information from etcd logs from pods collected by must-gather.
+
+## Usage
+
+- Added to OPCT in release: v0.5.0-alpha.3
+- Command: `opct adm parse-etcd-logs options args`
 
 Options:
 

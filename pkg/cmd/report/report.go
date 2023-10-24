@@ -569,7 +569,7 @@ func showChecks(re *report.Report) error {
 	emptyLine := "\t\t\t\t\n"
 	tbWriter := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
 
-	fmt.Fprintf(tbWriter, "\n> Presubmit Validation Checks\n%s", emptyLine)
+	fmt.Fprintf(tbWriter, "\n> Presubmit Validation Checks\n")
 	fmt.Fprintf(tbWriter, "\n%s>> Failed checks (must be reviewed before submitting the results):\t\t\t\t\n", emptyLine)
 	header := fmt.Sprintf("\n%8s \t%-90s \t%-6s \t%-34s \t%s\n", "ID", "NAME", "RESULT", "TARGET", "ACTUAL")
 	fmt.Fprintf(tbWriter, "%s", header)

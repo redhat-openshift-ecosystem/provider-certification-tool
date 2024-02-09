@@ -324,6 +324,10 @@ func NewCheckSummary(re *Report) *CheckSummary {
 			// "Acceptance" are relative, the baselines is observed to set
 			// an "accepted" value considering a healthy cluster in known provider/installation.
 			p := re.Provider.Plugins[plugin.PluginNameOpenShiftConformance]
+			if p.Stat == nil {
+				log.Debugf("%s Runtime: Stat not found", prefix)
+				return res
+			}
 			if p.Stat.Total == p.Stat.Failed {
 				res.Message = "Potential Runtime Failure. Check the Plugin logs."
 				res.Actual = "Total==Failed"
@@ -371,7 +375,7 @@ func NewCheckSummary(re *Report) *CheckSummary {
 		ID:   "OPCT-006",
 		Name: "Suite Errors must report a lower number of log errors",
 		Test: func() CheckResult {
-			res := CheckResult{Name: CheckResultNameFail, Target: "<=150"}
+			res := CheckResult{Name: CheckResultNameFail, Target: "<=150", Actual: "N/A"}
 			if re.Provider.ErrorCounters == nil {
 				return res
 			}
@@ -400,7 +404,7 @@ func NewCheckSummary(re *Report) *CheckSummary {
 		Name: "Workloads must report a lower number of errors in the logs",
 		Test: func() CheckResult {
 			wantLimit := 30000
-			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%d", wantLimit)}
+			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%d", wantLimit), Actual: "N/A"}
 			prefix := "Check OPCT-007 Failed"
 			if re.Provider.MustGatherInfo == nil {
 				log.Debugf("%s: MustGatherInfo is not defined", prefix)
@@ -432,7 +436,7 @@ func NewCheckSummary(re *Report) *CheckSummary {
 		Name: "Plugin Collector [99-openshift-artifacts-collector] must pass",
 		Test: func() CheckResult {
 			prefix := "Check OPCT-003 Failed"
-			res := CheckResult{Name: CheckResultNameFail, Target: "passed"}
+			res := CheckResult{Name: CheckResultNameFail, Target: "passed", Actual: "N/A"}
 			if _, ok := re.Provider.Plugins[plugin.PluginNameArtifactsCollector]; !ok {
 				return res
 			}
@@ -482,9 +486,17 @@ func NewCheckSummary(re *Report) *CheckSummary {
 		Test: func() CheckResult {
 			prefix := "Check OPCT-010 Failed"
 			wantLimit := 500.0
-			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%.2f ms", wantLimit)}
+			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%.2f ms", wantLimit), Actual: "N/A"}
+			if re.Provider == nil {
+				log.Debugf("%s: unable to read provider information.", prefix)
+				return res
+			}
 			if re.Provider.MustGatherInfo == nil {
 				log.Debugf("%s: unable to read must-gather information.", prefix)
+				return res
+			}
+			if re.Provider.MustGatherInfo.ErrorEtcdLogs == nil {
+				log.Debugf("%s: unable to etcd stat from must-gather.", prefix)
 				return res
 			}
 			if re.Provider.MustGatherInfo.ErrorEtcdLogs.FilterRequestSlowAll["all"] == nil {
@@ -520,9 +532,13 @@ func NewCheckSummary(re *Report) *CheckSummary {
 		Test: func() CheckResult {
 			prefix := "Check OPCT-011 Failed"
 			wantLimit := 1000.0
-			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%.2f ms", wantLimit)}
+			res := CheckResult{Name: CheckResultNameFail, Target: fmt.Sprintf("<=%.2f ms", wantLimit), Actual: "N/A"}
 			if re.Provider.MustGatherInfo == nil {
 				log.Debugf("%s: unable to read must-gather information.", prefix)
+				return res
+			}
+			if re.Provider.MustGatherInfo.ErrorEtcdLogs == nil {
+				log.Debugf("%s: unable to etcd stat from must-gather.", prefix)
 				return res
 			}
 			if re.Provider.MustGatherInfo.ErrorEtcdLogs.FilterRequestSlowAll["all"] == nil {

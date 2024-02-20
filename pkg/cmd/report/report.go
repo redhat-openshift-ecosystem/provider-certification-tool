@@ -278,39 +278,27 @@ func showReportAggregatedSummary(re *report.Report) error {
 	fmt.Fprint(tbWriter, newLineWithTab)
 	fmt.Fprintf(tbWriter, " Plugins summary by name:\t  Status [Total/Passed/Failed/Skipped] (timeout)\n")
 
-	pluginName := plugin.PluginNameKubernetesConformance
-	if _, ok := re.Provider.Plugins[pluginName]; !ok {
-		errlog.LogError(errors.New(fmt.Sprintf("Unable to load plugin %s", pluginName)))
-	}
-	plK8S := re.Provider.Plugins[pluginName]
-	name := plK8S.Name
-	stat := plK8S.Stat
-	pOCPPluginRes := fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
-	if baselineProcessed {
-		plK8S = re.Baseline.Plugins[pluginName]
+	showPluginSummary := func(w *tabwriter.Writer, pluginName string) {
+		if _, ok := re.Provider.Plugins[pluginName]; !ok {
+			errlog.LogError(errors.New(fmt.Sprintf("Unable to load plugin %s", pluginName)))
+		}
+		plK8S := re.Provider.Plugins[pluginName]
+		name := plK8S.Name
 		stat := plK8S.Stat
-		bOCPPluginRes := fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
-		fmt.Fprintf(tbWriter, " - %s\t: %s\t: %s\n", name, pOCPPluginRes, bOCPPluginRes)
-	} else {
-		fmt.Fprintf(tbWriter, " - %s\t: %s\n", name, pOCPPluginRes)
+		pOCPPluginRes := fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
+		if baselineProcessed {
+			plK8S = re.Baseline.Plugins[pluginName]
+			stat := plK8S.Stat
+			bOCPPluginRes := fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
+			fmt.Fprintf(tbWriter, " - %s\t: %s\t: %s\n", name, pOCPPluginRes, bOCPPluginRes)
+		} else {
+			fmt.Fprintf(tbWriter, " - %s\t: %s\n", name, pOCPPluginRes)
+		}
 	}
 
-	pluginName = plugin.PluginNameKubernetesConformance
-	if _, ok := re.Provider.Plugins[pluginName]; !ok {
-		errlog.LogError(errors.New(fmt.Sprintf("Unable to load plugin %s", pluginName)))
-	}
-	plOCP := re.Provider.Plugins[pluginName]
-	name = plOCP.Name
-	stat = plOCP.Stat
-	pOCPPluginRes = fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
-	if baselineProcessed {
-		plOCP = re.Baseline.Plugins[pluginName]
-		stat = plOCP.Stat
-		bOCPPluginRes := fmt.Sprintf("%s [%d/%d/%d/%d] (%d)", stat.Status, stat.Total, stat.Passed, stat.Failed, stat.Skipped, stat.Timeout)
-		fmt.Fprintf(tbWriter, " - %s\t: %s\t: %s\n", name, pOCPPluginRes, bOCPPluginRes)
-	} else {
-		fmt.Fprintf(tbWriter, " - %s\t: %s\n", name, pOCPPluginRes)
-	}
+	showPluginSummary(tbWriter, plugin.PluginNameKubernetesConformance)
+	showPluginSummary(tbWriter, plugin.PluginNameOpenShiftConformance)
+	showPluginSummary(tbWriter, plugin.PluginNameOpenShiftUpgrade)
 
 	fmt.Fprint(tbWriter, newLineWithTab)
 	fmt.Fprintf(tbWriter, " Health summary:\t  [A=True/P=True/D=True]\t\n")

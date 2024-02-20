@@ -568,6 +568,40 @@ func NewCheckSummary(re *Report) *CheckSummary {
 			return res
 		},
 	})
+	checkSum.Checks = append(checkSum.Checks, &Check{
+		ID:   "OPCT-012",
+		Name: "WARNING/README: Detected one or more plugin(s) with potential invalid result",
+		Test: func() CheckResult {
+			prefix := "Check OPCT-012 Failed"
+
+			res := CheckResult{Name: CheckResultNameFail, Target: "passed", Actual: "N/A"}
+			checkPlugins := []string{
+				plugin.PluginNameKubernetesConformance,
+				plugin.PluginNameOpenShiftConformance,
+				plugin.PluginNameArtifactsCollector,
+			}
+			invalidPluginIds := []string{}
+			for _, plugin := range checkPlugins {
+				if _, ok := re.Provider.Plugins[plugin]; !ok {
+					return res
+				}
+				p := re.Provider.Plugins[plugin]
+				if p.Stat.Total == p.Stat.Failed {
+					log.Debugf("%s Runtime: Total and Failed counters are equals indicating execution failure", prefix)
+					invalidPluginIds = append(invalidPluginIds, strings.Split(plugin, "-")[0])
+				}
+			}
+
+			if len(invalidPluginIds) > 0 {
+				res.Actual = fmt.Sprintf("IDs%v", invalidPluginIds)
+				return res
+			}
+
+			res.Name = CheckResultNamePass
+			log.Debugf("%s: %s", prefix, msgDefaultNotMatch)
+			return res
+		},
+	})
 	// TODO(network): podConnectivityChecks must not have outages
 
 	// Create docs reference when ID is set

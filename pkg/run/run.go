@@ -113,7 +113,7 @@ func NewCmdRun() *cobra.Command {
 			// Sleep to give status time to appear
 			time.Sleep(status.StatusInterval)
 
-			s := status.NewStatusOptions(o.watch)
+			s := status.NewStatusOptions(&status.StatusInput{Watch: o.watch})
 			err = s.WaitForStatusReport(cmd.Context(), sclient)
 			if err != nil {
 				log.WithError(err).Fatal("error retrieving aggregator status")
